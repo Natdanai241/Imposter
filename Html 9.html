@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ปฏิบัติการล่าสายลับ — Imposter Party</title>
+<style>
+:root{
+  --bg0:#120a2e; --bg1:#1d1258; --bg2:#0b2a63;
+  --glass:rgba(255,255,255,.085); --glass2:rgba(255,255,255,.14);
+  --stroke:rgba(255,255,255,.18); --stroke2:rgba(255,255,255,.32);
+  --txt:#f3f5ff; --mut:#b3b9e6;
+  --v:#8b5cff; --c:#25dcf2; --p:#ff5f9e; --a:#ffc94d; --ok:#2ee6a8; --bad:#ff6b6b;
+  --shadow:0 18px 40px rgba(6,2,30,.55);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg0); color:var(--txt); min-height:100dvh; overflow-x:hidden; line-height:1.55;
+  font-family:"Noto Sans Thai","Sarabun","Segoe UI",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+#bgfx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+  background:linear-gradient(160deg,#150b36 0%,#1b1156 45%,#0a2158 100%)}
+#bgfx i{position:absolute;display:block;border-radius:50%;filter:blur(60px);opacity:.55;animation:drift 18s ease-in-out infinite}
+#bgfx i:nth-child(1){width:320px;height:320px;background:#8b5cff;top:-80px;left:-60px}
+#bgfx i:nth-child(2){width:280px;height:280px;background:#25dcf2;top:30%;right:-90px;animation-delay:-4s}
+#bgfx i:nth-child(3){width:300px;height:300px;background:#ff5f9e;bottom:-100px;left:10%;animation-delay:-9s}
+#bgfx i:nth-child(4){width:220px;height:220px;background:#ffc94d;top:55%;left:-70px;animation-delay:-13s;opacity:.35}
+@keyframes drift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,-30px) scale(1.12)}66%{transform:translate(-30px,30px) scale(.94)}}
+#bgfx:after{content:"";position:absolute;inset:0;opacity:.055;
+  background-image:radial-gradient(#fff 1px,transparent 1px);background-size:22px 22px}
+
+#wrap{position:relative;z-index:2;max-width:640px;margin:0 auto;padding:10px 12px 70px}
+header#topbar{position:sticky;top:0;z-index:40;display:flex;gap:8px;align-items:center;
+  background:rgba(18,10,46,.72);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid var(--stroke);border-radius:0 0 18px 18px;padding:9px 12px;margin:-10px -12px 14px;
+  box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.brand{font-weight:800;letter-spacing:.5px;font-size:15px;white-space:nowrap;
+  background:linear-gradient(90deg,#fff,#ffd27a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.grow{flex:1}
+.icobtn{background:var(--glass);border:1px solid var(--stroke);color:var(--txt);border-radius:13px;
+  padding:7px 10px;font-size:16px;cursor:pointer;transition:.18s;backdrop-filter:blur(6px)}
+.icobtn:active{transform:scale(.92)}
+.icobtn.off{opacity:.35;filter:grayscale(1)}
+#roomChip{display:none;background:linear-gradient(135deg,#ffc94d,#ff8f5f);color:#2a1400;
+  border-radius:11px;padding:5px 10px;font-weight:900;letter-spacing:3px;font-size:14px;
+  box-shadow:0 6px 18px rgba(255,160,60,.4)}
+#roomChip.on{display:inline-block}
+
+h1{font-size:28px;margin:16px 0 4px;text-align:center;font-weight:900;letter-spacing:.5px;
+  background:linear-gradient(100deg,#fff 10%,#9fe9ff 40%,#ffb4dd 70%,#ffd88a 95%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 6px 18px rgba(139,92,255,.45))}
+h2{font-size:18px;margin:0 0 10px;font-weight:800}
+h3{font-size:15px;margin:0 0 8px;font-weight:800;color:#dfe3ff}
+.sub{text-align:center;color:var(--mut);font-size:13.5px;margin-bottom:18px}
+
+.card{position:relative;background:var(--glass);border:1px solid var(--stroke);border-radius:22px;
+  padding:16px;margin-bottom:14px;box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.18);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);animation:rise .4s cubic-bezier(.2,.9,.3,1)}
+.card.glow{border-color:rgba(255,201,77,.45);box-shadow:var(--shadow),0 0 40px rgba(255,201,77,.18) inset}
+.card.hero{background:linear-gradient(145deg,rgba(139,92,255,.30),rgba(37,220,242,.16));border-color:var(--stroke2)}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.center{text-align:center}.mut{color:var(--mut);font-size:13.5px}.hidden{display:none!important}
+.row{display:flex;gap:8px;align-items:center}
+
+.btn{display:block;width:100%;padding:14px 16px;border-radius:17px;border:1px solid var(--stroke2);
+  background:linear-gradient(180deg,rgba(255,255,255,.17),rgba(255,255,255,.06));color:#fff;
+  font-size:16px;font-weight:800;cursor:pointer;margin:9px 0;font-family:inherit;transition:.16s;
+  box-shadow:0 8px 0 rgba(0,0,0,.22),0 14px 28px rgba(0,0,0,.3)}
+.btn:active{transform:translateY(5px);box-shadow:0 3px 0 rgba(0,0,0,.22),0 6px 14px rgba(0,0,0,.3)}
+.btn.primary{background:linear-gradient(135deg,#8b5cff,#ff5f9e);border-color:rgba(255,255,255,.4)}
+.btn.gold{background:linear-gradient(135deg,#ffd257,#ff8f4d);color:#2a1500;border-color:rgba(255,255,255,.5)}
+.btn.cyan{background:linear-gradient(135deg,#25dcf2,#3f7bff);border-color:rgba(255,255,255,.4)}
+.btn.danger{background:linear-gradient(135deg,#ff6b6b,#c62b6d);border-color:rgba(255,255,255,.35)}
+.btn.ghost{background:rgba(255,255,255,.05);box-shadow:none;border-style:dashed}
+.btn.sm{width:auto;display:inline-block;padding:9px 14px;font-size:14px;border-radius:13px;margin:4px 5px 0 0;
+  box-shadow:0 4px 0 rgba(0,0,0,.2)}
+.btn[disabled]{opacity:.4;cursor:not-allowed;box-shadow:none;transform:none}
+.btn .shine{display:inline-block}
+input,select{width:100%;padding:13px 14px;border-radius:15px;border:1px solid var(--stroke);
+  background:rgba(10,6,32,.55);color:var(--txt);font-size:16px;font-family:inherit;margin:5px 0;transition:.18s}
+input::placeholder{color:#8f96c8}
+input:focus,select:focus{outline:none;border-color:var(--c);box-shadow:0 0 0 4px rgba(37,220,242,.16)}
+
+.pill{display:inline-block;background:var(--glass2);border:1px solid var(--stroke);border-radius:999px;
+  padding:5px 12px;font-size:12.5px;font-weight:700;color:#e6e9ff;margin:2px 3px 2px 0}
+.pill.hot{background:linear-gradient(135deg,#ff5f9e,#8b5cff);border-color:transparent}
+.pill.cool{background:linear-gradient(135deg,#25dcf2,#3f7bff);border-color:transparent}
+
+.plist{display:flex;flex-direction:column;gap:8px}
+.prow{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);
+  border:1px solid var(--stroke);border-radius:16px;padding:9px 11px;transition:.2s;flex-wrap:wrap;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14)}
+.prow.now{border-color:var(--a);background:rgba(255,201,77,.14);transform:scale(1.015)}
+.av{width:36px;height:36px;border-radius:13px;display:grid;place-items:center;font-size:18px;flex:none;
+  box-shadow:0 6px 14px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.4)}
+.pname{font-weight:800;font-size:14.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge{font-size:11.5px;font-weight:800;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.12);
+  color:#dfe3ff;flex:none;border:1px solid var(--stroke)}
+.badge.ok{background:rgba(46,230,168,.18);color:#8bffd8;border-color:rgba(46,230,168,.45)}
+.badge.wait{background:rgba(255,201,77,.18);color:#ffe2a1;border-color:rgba(255,201,77,.45)}
+.badge.bad{background:rgba(255,107,107,.18);color:#ffc0c0;border-color:rgba(255,107,107,.45)}
+.badge.num{background:linear-gradient(135deg,#8b5cff,#25dcf2);border-color:transparent;color:#fff}
+.clue{font-size:13.5px;color:#eef0ff;background:rgba(10,6,32,.5);border-left:3px solid var(--c);
+  padding:7px 11px;border-radius:0 12px 12px 0;margin-top:6px;width:100%;word-break:break-word}
+
+.passbox{text-align:center;padding:24px 10px}
+.passbox .big{font-size:23px;font-weight:900;margin:10px 0;
+  background:linear-gradient(90deg,#ffd88a,#ff9ecb);-webkit-background-clip:text;background-clip:text;color:transparent}
+.dots span{display:inline-block;width:9px;height:9px;border-radius:50%;margin:0 4px;
+  background:linear-gradient(135deg,#25dcf2,#8b5cff);animation:bump 1.15s infinite}
+.dots span:nth-child(2){animation-delay:.18s}.dots span:nth-child(3){animation-delay:.36s}
+@keyframes bump{0%,100%{opacity:.3;transform:translateY(0) scale(.85)}50%{opacity:1;transform:translateY(-7px) scale(1)}}
+.phone-ico{font-size:44px;display:block;animation:swing 2s ease-in-out infinite}
+@keyframes swing{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}}
+
+.secret{position:relative;text-align:center;padding:30px 16px;border-radius:24px;overflow:hidden;
+  background:linear-gradient(150deg,rgba(139,92,255,.35),rgba(37,220,242,.18));
+  border:1px solid var(--stroke2);box-shadow:0 22px 50px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.3);
+  animation:flipIn .85s cubic-bezier(.2,1,.3,1)}
+.secret:before{content:"";position:absolute;inset:-40%;background:conic-gradient(from 0deg,transparent,rgba(255,255,255,.14),transparent 40%);
+  animation:spin 6s linear infinite;pointer-events:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes flipIn{0%{transform:perspective(900px) rotateY(-85deg) scale(.85);opacity:0}
+  60%{transform:perspective(900px) rotateY(12deg) scale(1.02);opacity:1}
+  100%{transform:perspective(900px) rotateY(0) scale(1)}}
+.secret .role{position:relative;font-size:12.5px;letter-spacing:5px;color:#d7dcff;font-weight:800}
+.secret .word{position:relative;font-size:34px;font-weight:900;margin:12px 0;letter-spacing:1px;
+  color:#fff;text-shadow:0 0 30px rgba(255,255,255,.55);animation:unblur .9s .2s both}
+.secret .word.imp{background:linear-gradient(90deg,#ff8a8a,#ff5f9e);-webkit-background-clip:text;background-clip:text;color:transparent}
+@keyframes unblur{from{filter:blur(16px);opacity:0;letter-spacing:14px}to{filter:blur(0);opacity:1;letter-spacing:1px}}
+.redacted{display:inline-block;background:#000;color:transparent;border-radius:5px;padding:2px 16px;position:relative}
+.stamp{display:inline-block;border:2.5px solid rgba(255,107,107,.9);color:#ff9d9d;font-weight:900;
+  padding:3px 12px;border-radius:7px;transform:rotate(-6deg);letter-spacing:3px;font-size:12px}
+.stamp.ok{border-color:rgba(46,230,168,.9);color:#8bffd8}
+
+.votegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:9px;margin-top:10px}
+.vbtn{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.07);border:1px solid var(--stroke);
+  border-radius:17px;padding:10px;cursor:pointer;font-family:inherit;color:var(--txt);text-align:left;
+  transition:.18s;box-shadow:0 6px 0 rgba(0,0,0,.18)}
+.vbtn:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.vbtn.sel{border-color:var(--a);background:linear-gradient(135deg,rgba(255,201,77,.3),rgba(255,95,158,.22));
+  box-shadow:0 6px 0 rgba(0,0,0,.18),0 0 26px rgba(255,201,77,.35)}
+.tally{display:flex;flex-direction:column;gap:8px}
+.tline{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.06);border:1px solid var(--stroke);
+  border-radius:15px;padding:8px 10px;animation:slideIn .45s cubic-bezier(.2,1,.3,1)}
+@keyframes slideIn{from{opacity:0;transform:translateX(-22px) scale(.95)}to{opacity:1;transform:none}}
+.bar{height:10px;border-radius:99px;background:rgba(0,0,0,.35);overflow:hidden;flex:1;min-width:40px}
+.bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#25dcf2,#8b5cff,#ff5f9e);
+  transition:width .55s cubic-bezier(.2,1,.3,1)}
+
+.timer{font-size:54px;font-weight:900;text-align:center;letter-spacing:2px;line-height:1.1;
+  background:linear-gradient(90deg,#9fe9ff,#ffd88a);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 8px 24px rgba(37,220,242,.4))}
+.timer.warn{background:linear-gradient(90deg,#ff9d9d,#ff5f9e);-webkit-background-clip:text;background-clip:text;
+  animation:pulse .9s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+.ring{height:8px;border-radius:99px;background:rgba(0,0,0,.35);overflow:hidden;margin:12px 0 4px}
+.ring i{display:block;height:100%;background:linear-gradient(90deg,#2ee6a8,#ffc94d,#ff5f6d);transition:width 1s linear}
+
+.elim{text-align:center;padding:28px 12px}
+.elim .who{font-size:32px;font-weight:900;margin:12px 0;animation:shake .7s}
+@keyframes shake{0%,100%{transform:translateX(0)}15%{transform:translateX(-11px) rotate(-2deg)}35%{transform:translateX(11px) rotate(2deg)}55%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.banner{text-align:center;font-size:23px;font-weight:900;padding:18px;border-radius:22px;margin-bottom:14px;
+  animation:popIn .55s cubic-bezier(.2,1.5,.4,1);box-shadow:var(--shadow)}
+@keyframes popIn{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+.banner.civ{background:linear-gradient(135deg,#2ee6a8,#25a0f2);color:#052b20}
+.banner.imp{background:linear-gradient(135deg,#ff6b6b,#b52f8c);color:#fff}
+.scoretag{font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;margin:2px 3px 0 0;display:inline-block;
+  background:rgba(46,230,168,.2);color:#8bffd8;border:1px solid rgba(46,230,168,.4)}
+.trophy{font-size:52px;display:block;animation:bounce 1.6s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+#errorPanel{position:fixed;inset:auto 0 0 0;z-index:9999;background:linear-gradient(180deg,#a31414,#6d0b0b);
+  border-top:3px solid #ff6b6b;color:#fff;padding:14px;font-size:13px;max-height:48vh;overflow:auto}
+#errorPanel b{display:block;font-size:15px;margin-bottom:5px}
+#errorPanel pre{white-space:pre-wrap;word-break:break-word;margin:6px 0 0;font-size:12px;opacity:.9}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:900;
+  background:rgba(20,12,50,.95);border:1px solid var(--stroke2);color:#fff;padding:12px 20px;border-radius:999px;
+  font-size:14px;font-weight:700;opacity:0;pointer-events:none;transition:.32s;max-width:90vw;text-align:center;
+  backdrop-filter:blur(10px);box-shadow:var(--shadow)}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(-8px)}
+.footer{text-align:center;font-size:11.5px;color:#7c83b8;margin-top:22px}
+@media(max-width:380px){.secret .word{font-size:28px}h1{font-size:23px}.timer{font-size:44px}}
+</style>
+</head>
+<body>
+<div id="bgfx"><i></i><i></i><i></i><i></i></div>
+
+<div id="errorPanel" hidden>
+  <b>⚠️ เกิดข้อผิดพลาดในระบบ</b>
+  <div>กรุณาบันทึกข้อความด้านล่าง แล้วกดรีโหลดหน้าเกม</div>
+  <pre id="errText"></pre>
+  <button class="btn danger" style="margin-top:10px" onclick="location.reload()">รีโหลดหน้าเกม</button>
+</div>
+
+<div id="wrap">
+  <header id="topbar">
+    <span class="brand">🕵️ ล่าสายลับ</span>
+    <span id="roomChip">-----</span>
+    <span class="grow"></span>
+    <button class="icobtn" id="btnMusic" data-act="toggle-music" title="เพลงประกอบ">🎵</button>
+    <button class="icobtn" id="btnSfx" data-act="toggle-sfx" title="เสียงเอฟเฟกต์">🔊</button>
+    <button class="icobtn hidden" id="btnHome" data-act="go-home" title="กลับหน้าแรก">🏠</button>
+  </header>
+
+  <section id="screen-home">
+    <h1>ปฏิบัติการล่าสายลับ</h1>
+    <div class="sub">ทุกคนได้ “คำลับ” เหมือนกัน... ยกเว้นสายลับหนึ่งคน<br>ใบ้ • สืบ • โหวต • จับให้ได้!</div>
+
+    <div class="card hero">
+      <h2>🎮 เลือกโหมดการเล่น</h2>
+      <button class="btn primary" data-act="mode" data-v="local">📱 ส่งเครื่องต่อกัน <span class="mut" style="color:#ffe">(3–15 คน เครื่องเดียว)</span></button>
+      <button class="btn cyan" data-act="mode" data-v="solo">🤖 ฝึกซ้อมกับบอท <span style="opacity:.8">(เล่นคนเดียว)</span></button>
+      <button class="btn gold" data-act="mode" data-v="online">🌐 เล่นออนไลน์ P2P <span style="opacity:.8">(หลายเครื่อง)</span></button>
+      <button class="btn ghost hidden" id="btnResume" data-act="resume">↩️ กลับเข้าห้องออนไลน์ที่ค้างไว้</button>
+    </div>
+
+    <div class="card">
+      <h2>🗂️ คลังคำลับ</h2>
+      <div id="poolInfo" class="mut">กำลังโหลด...</div>
+      <div class="ring"><i id="poolBar" style="width:0%"></i></div>
+      <div class="mut">ระบบจะไม่สุ่มคำซ้ำ จนกว่าจะใช้ครบทุกคำในคลัง</div>
+      <button class="btn danger" data-act="reset-words">🗑️ เริ่มเกมใหม่ทั้งหมด / รีเซ็ตคลังคำ</button>
+    </div>
+
+    <div class="card">
+      <h2>📖 กติกา &amp; การให้คะแนน</h2>
+      <div class="mut">
+        1. ทุกคนได้คำลับเดียวกัน — ยกเว้น <b>สายลับ 1 คน</b> ที่ไม่ได้รับคำ<br>
+        2. ผลัดกันใบ้ (โหมดออนไลน์ = <b>พูดคุยกันเอง จับเวลา 5 นาที</b>)<br>
+        3. โหวตจับสายลับ ห้ามโหวตตัวเอง<br>
+        4. ถ้าจับได้ สายลับมีสิทธิ์ทายคำลับ 1 ครั้ง
+      </div>
+      <div style="margin-top:10px">
+        <span class="pill cool">🎯 ชี้ตัวสายลับถูก +1</span>
+        <span class="pill hot">🕶️ สายลับเนียน (โดนชี้เป็นส่วนน้อย) +1</span>
+        <span class="pill">🧩 สายลับทายคำถูก +1</span>
+      </div>
+    </div>
+    <div class="footer">รองรับ 3–15 คน • ออกแบบสำหรับมือถือ</div>
+  </section>
+
+  <section id="screen-lobby" class="hidden"><div id="lobbyArea"></div></section>
+  <section id="screen-game" class="hidden"><div id="phaseArea"></div></section>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+"use strict";
+/* ========================= ERROR GATE ========================= */
+function showError(msg){
+  try{
+    var p=document.getElementById('errorPanel'),t=document.getElementById('errText');
+    if(t) t.textContent=String(msg||'unknown');
+    if(p) p.hidden=false;
+  }catch(e){}
+}
+window.addEventListener('error',function(e){ showError((e.message||'error')+'\n'+(e.filename||'')+':'+(e.lineno||'')); });
+window.addEventListener('unhandledrejection',function(e){ showError('Promise: '+((e.reason&&e.reason.message)||e.reason)); });
+function guard(fn){ return function(){ try{ return fn.apply(this,arguments); }catch(err){ showError(err&&err.stack||err); } }; }
+
+/* ========================= WORD DATABASE (430 คำ) ========================= */
+var CATS={
+'สัตว์':'สุนัข,แมว,ช้าง,เสือ,สิงโต,ยีราฟ,ม้าลาย,ลิง,หมี,กระต่าย,หนู,งู,จระเข้,เต่า,กบ,ปลาวาฬ,โลมา,ฉลาม,ปลาหมึก,ปู,กุ้ง,หอยทาก,นกฮูก,นกแก้ว,เพนกวิน,นกยูง,ไก่,เป็ด,ห่าน,หมู,วัว,ควาย,แพะ,แกะ,ม้า,กวาง,จิงโจ้,แพนด้า,โคอาล่า,ฮิปโป,แรด,อูฐ,จิ้งจก,ตุ๊กแก,แมงมุม,ผึ้ง,ผีเสื้อ,มด,ยุง,แมลงสาบ',
+'อาหารและเครื่องดื่ม':'ข้าวผัด,ผัดไทย,ต้มยำกุ้ง,แกงเขียวหวาน,ส้มตำ,ไก่ย่าง,ข้าวเหนียว,หมูกระทะ,สุกี้,ก๋วยเตี๋ยว,ราดหน้า,ผัดซีอิ๊ว,ข้าวมันไก่,ข้าวขาหมู,มัสมั่น,ต้มข่าไก่,ลาบ,ไข่เจียว,ไข่ดาว,ปลาทอด,หมูปิ้ง,ลูกชิ้น,ซูชิ,ราเมง,พิซซ่า,แฮมเบอร์เกอร์,เฟรนช์ฟรายส์,สปาเกตตี,สเต๊ก,ไก่ทอด,ขนมปัง,เค้ก,โดนัท,ไอศกรีม,ช็อกโกแลต,ทองหยิบ,ขนมครก,โรตี,บัวลอย,มะม่วง,ทุเรียน,มังคุด,เงาะ,ลำไย,แตงโม,สับปะรด,กล้วย,ส้ม,แอปเปิล,องุ่น,สตรอว์เบอร์รี,มะละกอ,ฝรั่ง,ชมพู่,กาแฟ,ชาเย็น,น้ำอัดลม,นมเปรี้ยว,น้ำมะนาว,ป๊อปคอร์น',
+'ของใช้ในบ้าน':'ร่ม,แว่นตา,นาฬิกาข้อมือ,กระเป๋าเดินทาง,รองเท้า,ถุงเท้า,หมวก,เข็มขัด,กระจกเงา,หวี,แปรงสีฟัน,ยาสีฟัน,สบู่,ผ้าเช็ดตัว,กรรไกร,มีด,ช้อน,ส้อม,ตะเกียบ,จาน,ชาม,แก้วน้ำ,ขวดน้ำ,กระติกน้ำ,หม้อ,กระทะ,เตาแก๊ส,ตู้เย็น,ไมโครเวฟ,พัดลม,เครื่องปรับอากาศ,เครื่องซักผ้า,เตารีด,ไม้กวาด,ถังขยะ,ไฟฉาย,เทียนไข,ไม้ขีดไฟ,กุญแจ,แม่กุญแจ,บันได,เชือก,ค้อน,ตะปู,ไขควง,เลื่อย,ดินสอ,ปากกา,ยางลบ,ไม้บรรทัด,สมุด,หนังสือ,กระดาษ,กาว,ลูกโป่ง',
+'สถานที่':'โรงเรียน,โรงพยาบาล,ตลาดสด,ห้างสรรพสินค้า,ร้านสะดวกซื้อ,ธนาคาร,ไปรษณีย์,สถานีตำรวจ,สถานีดับเพลิง,สนามบิน,สถานีรถไฟ,ท่าเรือ,วัด,โบสถ์,พิพิธภัณฑ์,สวนสัตว์,สวนสนุก,สวนสาธารณะ,ชายหาด,ภูเขา,น้ำตก,ทะเลสาบ,ถ้ำ,ทะเลทราย,ป่าดงดิบ,เกาะ,โรงแรม,ร้านอาหาร,ร้านกาแฟ,โรงภาพยนตร์,ห้องสมุด,ฟิตเนส,สนามกีฬา,สนามเด็กเล่น,ร้านตัดผม,ร้านเสริมสวย,ปั๊มน้ำมัน,ลานจอดรถ,สะพาน,อุโมงค์,ประภาคาร,ปราสาท,พีระมิด,ตลาดน้ำ,ห้องน้ำ',
+'อาชีพ':'หมอ,พยาบาล,ครู,ตำรวจ,ทหาร,นักดับเพลิง,นักบิน,แอร์โฮสเตส,กัปตันเรือ,คนขับรถ,ช่างตัดผม,เชฟ,บาริสต้า,พนักงานเสิร์ฟ,ชาวนา,ชาวประมง,ช่างไม้,ช่างไฟฟ้า,ช่างประปา,วิศวกร,สถาปนิก,โปรแกรมเมอร์,นักบัญชี,ทนายความ,ผู้พิพากษา,นักข่าว,ช่างภาพ,นักแสดง,นักร้อง,นักดนตรี,จิตรกร,นักเขียน,นักวิทยาศาสตร์,นักโบราณคดี,สัตวแพทย์,ทันตแพทย์,เภสัชกร,บุรุษไปรษณีย์,ยามรักษาความปลอดภัย,นักมายากล',
+'ธรรมชาติ':'ดวงอาทิตย์,ดวงจันทร์,ดวงดาว,เมฆ,ฝน,หิมะ,สายรุ้ง,ฟ้าผ่า,พายุ,หมอก,ภูเขาไฟ,แผ่นดินไหว,สึนามิ,ทราย,ก้อนหิน,แม่น้ำ,ทะเล,มหาสมุทร,ต้นไม้,ดอกไม้,ใบไม้,หญ้า,กระบองเพชร,เห็ด,ดอกกุหลาบ,ดอกทานตะวัน,ดอกบัว,ต้นมะพร้าว,ต้นไผ่,น้ำแข็ง,ไฟ,สายลม,ดิน,น้ำค้าง,สุริยุปราคา',
+'เทคโนโลยี':'โทรศัพท์มือถือ,คอมพิวเตอร์,โน้ตบุ๊ก,แท็บเล็ต,หูฟัง,ลำโพง,กล้องถ่ายรูป,โดรน,หุ่นยนต์,ดาวเทียม,จรวด,อินเทอร์เน็ต,ไวไฟ,รหัสผ่าน,อีเมล,เว็บไซต์,แอปพลิเคชัน,เกมออนไลน์,ยูทูบ,เฟซบุ๊ก,ติ๊กต็อก,ไลน์,จีพีเอส,แบตเตอรี่,สายชาร์จ,เมาส์,คีย์บอร์ด,จอภาพ,เครื่องพิมพ์,ปัญญาประดิษฐ์',
+'กีฬา':'ฟุตบอล,บาสเกตบอล,วอลเลย์บอล,แบดมินตัน,เทนนิส,ปิงปอง,กอล์ฟ,ว่ายน้ำ,วิ่งมาราธอน,ปั่นจักรยาน,มวยไทย,ยูโด,เทควันโด,ยิมนาสติก,สเก็ตน้ำแข็ง,สโนว์บอร์ด,โต้คลื่น,ดำน้ำ,ปีนผา,โยคะ,ยกน้ำหนัก,ยิงธนู,ฟันดาบ,เบสบอล,รักบี้,สนุกเกอร์,โบว์ลิ่ง,แข่งรถ,ชักเย่อ,กระโดดเชือก',
+'บันเทิง':'ภาพยนตร์,ละครโทรทัศน์,การ์ตูน,คอนเสิร์ต,กีตาร์,เปียโน,กลอง,ไวโอลิน,ขลุ่ย,ไมโครโฟน,คาราโอเกะ,เต้นรำ,ละครสัตว์,มายากล,ตัวตลก,หุ่นกระบอก,หมากรุก,หมากฮอส,ไพ่,โดมิโน,ตัวต่อเลโก้,ตุ๊กตาหมี,ว่าว,ลูกข่าง,ชิงช้าสวรรค์,รถไฟเหาะ,บ้านผีสิง,นิยาย,หนังสือพิมพ์,พลุไฟ',
+'ยานพาหนะ':'รถยนต์,มอเตอร์ไซค์,จักรยาน,รถเมล์,รถไฟ,รถไฟฟ้า,เครื่องบิน,เฮลิคอปเตอร์,เรือ,เรือดำน้ำ,เรือใบ,รถตุ๊กตุ๊ก,รถสองแถว,แท็กซี่,รถพยาบาล,รถดับเพลิง,รถบรรทุก,รถแทรกเตอร์,รถถัง,สกู๊ตเตอร์,สเก็ตบอร์ด,บอลลูน,กระเช้าลอยฟ้า,เรือแคนู,รถเข็น',
+'ร่างกายและเทศกาล':'หัวใจ,สมอง,ดวงตา,จมูก,ปาก,หู,ฟัน,ลิ้น,มือ,เท้า,นิ้วมือ,เส้นผม,เล็บ,กระดูก,เลือด,ความฝัน,ความรัก,มิตรภาพ,วันเกิด,งานแต่งงาน,วันปีใหม่,สงกรานต์,ลอยกระทง,ฮาโลวีน,คริสต์มาส,วันหยุด,การสอบ,เงินเดือน,ความลับ,กระเป๋าเงิน'
+};
+var WORD_LIST=[],WORD_SEEN={};
+(function(){ for(var c in CATS){ var arr=String(CATS[c]).split(','),clean=[];
+  for(var i=0;i<arr.length;i++){ var w=arr[i].trim(); if(!w||WORD_SEEN[w]) continue;
+    WORD_SEEN[w]=1; clean.push(w); WORD_LIST.push({w:w,c:c}); }
+  CATS[c]=clean; } })();
+
+var CAT_CLUES={
+'สัตว์':['มันมีชีวิตและขยับเองได้','บางบ้านเลี้ยงไว้ บางคนกลัวมาก','เจอในธรรมชาติมากกว่าในห้าง','ไม่ใช่มนุษย์ แต่มีความรู้สึก','เด็ก ๆ ชอบดูมันมาก','เคยเห็นในสารคดีบ่อย ๆ','เข้าใกล้ต้องระวังนิดหนึ่ง','มันไม่พูดภาษาคน'],
+'อาหารและเครื่องดื่ม':['กินแล้วอิ่มหรือชื่นใจ','สั่งได้ตามร้านทั่วไป','บางคนกินแล้วอ้วนแน่','มีกลิ่นที่จำได้ทันที','ราคาไม่แพงมาก','ตอนหิวจะนึกถึงสิ่งนี้','ต้องใช้ปากสัมผัสมัน','เจอได้ในตลาดแน่นอน'],
+'ของใช้ในบ้าน':['เกือบทุกบ้านต้องมี','หยิบใช้แล้ววางคืนที่','ถ้าหายจะหงุดหงิดมาก','ซื้อได้ตามร้านทั่วไป','ใช้มือจับเป็นหลัก','มีประโยชน์ทุกวัน','ถ้าพังต้องซื้อใหม่','วางไว้ในห้องใดห้องหนึ่ง'],
+'สถานที่':['เป็นที่ที่คนเดินทางไป','บางวันคนเยอะมาก','ต้องออกจากบ้านถึงจะเจอ','มีทางเข้าและทางออก','ถ่ายรูปลงโซเชียลได้','บางคนไปทุกสัปดาห์','ใช้เวลาเดินทางพอสมควร','กว้างกว่าห้องนอนแน่นอน'],
+'อาชีพ':['ต้องฝึกฝนกว่าจะทำได้','มีเงินเดือนหรือรายได้','ใส่ชุดเฉพาะบางที','คนทั่วไปเคยเจอคนแบบนี้','เด็กบางคนอยากเป็น','ทำงานร่วมกับคนอื่น','ต้องรับผิดชอบสูง','สังคมขาดไม่ได้'],
+'ธรรมชาติ':['เกิดขึ้นเองโดยไม่ต้องมีคน','เห็นได้ถ้าอยู่ถูกที่ถูกเวลา','สวยแต่บางครั้งอันตราย','ไม่ต้องเสียเงินซื้อ','มีมาก่อนมนุษย์นานมาก','ถ่ายรูปออกมาแล้วสวย','เปลี่ยนแปลงตามเวลา','เกี่ยวกับฟ้าดินน้ำ'],
+'เทคโนโลยี':['สมัยก่อนไม่มีสิ่งนี้','ต้องใช้ไฟฟ้าหรือสัญญาณ','คนติดกันทั้งโลก','ถ้าไม่มีจะรู้สึกขาดอะไรไป','เด็กรุ่นใหม่ใช้คล่องมาก','ราคาค่อนข้างสูง','พัฒนาเร็วมากทุกปี','เกี่ยวกับหน้าจอหรือสัญญาณ'],
+'กีฬา':['ต้องออกแรงพอสมควร','มีการแข่งขันระดับโลก','เหนื่อยแต่สนุก','ต้องมีกติกาชัดเจน','ดูถ่ายทอดสดได้','เล่นแล้วสุขภาพดี','บางคนเล่นจนเป็นอาชีพ','ต้องฝึกซ้อมสม่ำเสมอ'],
+'บันเทิง':['ทำให้เวลาผ่านไปเร็ว','เอาไว้คลายเครียด','มีทั้งคนชอบและไม่ชอบ','เกี่ยวกับความสนุกล้วน ๆ','เด็กและผู้ใหญ่เล่นได้','มักทำตอนว่าง','ถ้าอินแล้วหยุดยาก','เห็นแล้วอยากลองบ้าง'],
+'ยานพาหนะ':['ช่วยให้ถึงที่หมายเร็วขึ้น','ต้องมีคนควบคุม','มีเรื่องความปลอดภัยเกี่ยวข้อง','เสียงของมันจำได้','ต้องเติมพลังงานบ้าง','ราคาค่อนข้างสูง','เคลื่อนที่ได้','บางทีนั่งได้หลายคน'],
+'ร่างกายและเทศกาล':['เกี่ยวกับตัวเราหรือความรู้สึก','ไม่ได้จับต้องได้เสมอไป','ทุกคนเคยมีประสบการณ์กับมัน','บางครั้งทำให้ยิ้มได้','พูดถึงบ่อยในชีวิตประจำวัน','อธิบายยากแต่ทุกคนเข้าใจ','สำคัญกว่าที่คิด','เกี่ยวข้องกับคนใกล้ตัว']
+};
+var GENERIC_CLUES=['เป็นสิ่งที่เจอได้ในชีวิตประจำวัน','คนส่วนใหญ่น่าจะรู้จัก','ไม่ได้แปลกอะไรมาก','เคยเห็นมาก่อนแน่นอน'];
+var VAGUE_CLUES=['ผมว่ามันธรรมดามากเลยนะ','อันนี้เคยเจอบ่อยอยู่','คิดถึงตอนเด็ก ๆ เลย','มันก็ประมาณนั้นแหละ','พูดยากนะ แต่ทุกคนน่าจะเข้าใจ','อยู่ใกล้ตัวเรานี่แหละ','ไม่อยากใบ้ชัดเกินไป','แบบว่า...มันก็ใช่อยู่','บอกมากกว่านี้เดี๋ยวโดนจับได้','รู้สึกคุ้น ๆ อยู่นะ','ขอพูดกลาง ๆ ไว้ก่อน','อันนี้ต้องเคยเห็นแหละ'];
+var ECHO_CLUES=['คล้ายกับที่เพื่อนพูดเมื่อกี้','เห็นด้วยกับคนก่อนหน้าเลย','คิดเหมือนที่มีคนใบ้ไปแล้ว','ต่อจากคนก่อนหน้าได้เลย','ประมาณที่เพื่อนบอกนั่นแหละ'];
+
+/* ========================= AUDIO ========================= */
+var AU={ctx:null,master:null,music:true,sfx:true,loop:null,step:0,unlocked:false,
+ init:function(){ if(this.ctx) return; var C=window.AudioContext||window.webkitAudioContext; if(!C) return;
+   this.ctx=new C(); this.master=this.ctx.createGain(); this.master.gain.value=.42; this.master.connect(this.ctx.destination); },
+ unlock:function(){ this.init(); if(!this.ctx) return;
+   if(this.ctx.state==='suspended'){ try{this.ctx.resume();}catch(e){} }
+   if(!this.unlocked){ this.unlocked=true; if(this.music) this.startMusic(); } },
+ tone:function(f,dur,type,vol,delay,f2){ if(!this.ctx||!this.sfx) return;
+   var t=this.ctx.currentTime+(delay||0),o=this.ctx.createOscillator(),g=this.ctx.createGain();
+   o.type=type||'sine'; o.frequency.setValueAtTime(f,t);
+   if(f2) o.frequency.exponentialRampToValueAtTime(Math.max(30,f2),t+dur);
+   g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(vol||.16,t+.02);
+   g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+   o.connect(g); g.connect(this.master); o.start(t); o.stop(t+dur+.05); },
+ play:function(n){ if(!this.ctx||!this.sfx) return;
+   switch(n){
+     case 'reveal': this.tone(240,.85,'sine',.17,0,920); this.tone(360,.6,'triangle',.09,.12); break;
+     case 'tick': this.tone(920,.06,'square',.09); break;
+     case 'vote': this.tone(560,.09,'triangle',.13); this.tone(760,.09,'triangle',.10,.07); break;
+     case 'suspense': this.tone(95,1.1,'sawtooth',.10,0,150); break;
+     case 'elim': this.tone(420,.45,'sawtooth',.15,0,85); this.tone(180,.7,'square',.09,.2); break;
+     case 'win': this.tone(523,.16,'triangle',.17); this.tone(659,.16,'triangle',.17,.15); this.tone(784,.42,'triangle',.19,.3); break;
+     case 'lose': this.tone(392,.22,'sawtooth',.15); this.tone(311,.22,'sawtooth',.15,.18); this.tone(233,.55,'sawtooth',.15,.36); break;
+     case 'click': this.tone(340,.05,'square',.06); break;
+     case 'ping': this.tone(1046,.12,'sine',.10); break;
+   } },
+ startMusic:function(){ var s=this; this.init(); if(!this.ctx||this.loop) return;
+   var seq=[110,130.8,98,123.5]; this.step=0;
+   this.loop=setInterval(function(){ if(!s.music||!s.ctx) return;
+     var t=s.ctx.currentTime,b=seq[s.step%seq.length];
+     [[b,2.6,.05],[b*2,1.6,.028],[b*3,.9,.014]].forEach(function(p,i){
+       var o=s.ctx.createOscillator(),g=s.ctx.createGain();
+       o.type=i===0?'sine':'triangle'; o.frequency.setValueAtTime(p[0],t);
+       g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(p[2],t+.6);
+       g.gain.exponentialRampToValueAtTime(.0001,t+p[1]);
+       o.connect(g); g.connect(s.master); o.start(t); o.stop(t+p[1]+.1); });
+     s.step++; },2400); },
+ stopMusic:function(){ if(this.loop){ clearInterval(this.loop); this.loop=null; } }
+};
+
+/* ========================= HELPERS ========================= */
+var COLORS=['#ff6b6b','#25dcf2','#2ee6a8','#ffc94d','#8b5cff','#ff5f9e','#4dd0ff','#b4e04d','#ffd84d','#7c9cff','#ff9d6b','#8bffb0','#ff8bd8','#6bf0e0','#d0a6ff'];
+var ICONS=['🕵️','🎩','🦊','🐺','🦉','🐍','🐯','🦅','🐙','🦂','🐲','🦇','🐆','🦝','🐧'];
+var BOT_NAMES=['บอทเงา','บอทนกฮูก','บอทเสือดำ','บอทหมอกขาว','บอทดาวเหนือ','บอทสายฟ้า','บอทเหล็กกล้า','บอทหมาป่า','บอทพยัคฆ์','บอทมรกต','บอทราตรี','บอทกระสุน','บอทนาฬิกา','บอทเพชร'];
+var PERSONAS=[
+ {n:'นักสืบเลือดเย็น',skill:.85,guess:.35,style:function(c){return c;}},
+ {n:'จอมเมาท์',skill:.55,guess:.20,style:function(c){return c+' ...เอาจริงนะ';}},
+ {n:'นักปรัชญา',skill:.70,guess:.25,style:function(c){return 'ถ้าให้คิดดี ๆ '+c;}},
+ {n:'มือใหม่หัดเล่น',skill:.30,guess:.12,style:function(c){return c+' มั้งนะ';}},
+ {n:'จอมกวน',skill:.50,guess:.18,style:function(c){return c+' (ไม่บอกมากกว่านี้)';}}
+];
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+function shuffle(a){ var r=a.slice(); for(var i=r.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)),t=r[i]; r[i]=r[j]; r[j]=t; } return r; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function norm(s){ return String(s==null?'':s).replace(/\s+/g,'').replace(/[.?!ๆฯ"']/g,'').trim(); }
+function $(id){ return document.getElementById(id); }
+function toast(m){ var t=$('toast'); if(!t) return; t.textContent=m; t.classList.add('on');
+  clearTimeout(t._h); t._h=setTimeout(function(){ t.classList.remove('on'); },2300); }
+function genCode(){ var s='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',o=''; for(var i=0;i<5;i++) o+=s.charAt(Math.floor(Math.random()*s.length)); return o; }
+function fmt(ms){ var s=Math.max(0,Math.ceil(ms/1000)); return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2); }
+var Timers=[];
+function schedule(fn,ms){ var h=setTimeout(guard(fn),ms); Timers.push(h); return h; }
+function addInterval(h){ Timers.push(h); return h; }
+function clearTimers(){ for(var i=0;i<Timers.length;i++){ clearTimeout(Timers[i]); clearInterval(Timers[i]); } Timers.length=0; }
+
+/* ========================= STORAGE ========================= */
+var LS_USED='imp_used_v2',LS_STATE='imp_host_v2';
+function loadUsed(){ try{ var r=JSON.parse(localStorage.getItem(LS_USED)||'[]'); return Array.isArray(r)?r:[]; }catch(e){ return []; } }
+function saveUsed(a){ try{ localStorage.setItem(LS_USED,JSON.stringify(a)); }catch(e){} }
+function resetUsed(){ saveUsed([]); updatePool(); AU.play('ping'); toast('รีเซ็ตคลังคำแล้ว — พร้อมใช้ '+WORD_LIST.length+' คำ'); }
+function updatePool(){
+  var el=$('poolInfo'),bar=$('poolBar'); if(!el) return;
+  var u=loadUsed().length,total=WORD_LIST.length,left=total-u;
+  el.innerHTML='คำทั้งหมด <b>'+total+'</b> คำ • ใช้ไปแล้ว <b>'+u+'</b> • เหลือ <b>'+left+'</b>';
+  if(bar) bar.style.width=Math.round(u/total*100)+'%';
+}
+function pickWord(){
+  var used=loadUsed(),set={},i;
+  for(i=0;i<used.length;i++) set[used[i]]=1;
+  var pool=WORD_LIST.filter(function(x){ return !set[x.w]; });
+  if(!pool.length){ used=[]; pool=WORD_LIST.slice(); toast('ใช้คำครบทุกคำแล้ว — เริ่มวนคลังใหม่'); }
+  var c=pool[Math.floor(Math.random()*pool.length)];
+  used.push(c.w); saveUsed(used); updatePool();
+  return c;
+}
+
+/* ========================= APP STATE ========================= */
+var App={mode:null,isHost:false,myId:null,peer:null,hostConn:null,roomCode:null,connByPlayer:{},net:'',clockOffset:0};
+var G=null, CS={pub:null,priv:null}, UI={step:'pass',sel:null};
+var PEER_PREFIX='impwg7-', TALK_MS=300000, DISCUSS_MS=90000;
+
+function newGame(mode,rounds){
+  return {phase:'lobby',mode:mode,talk:(mode==='online'),maxRounds:rounds||3,round:0,players:[],
+    word:null,wordCat:null,imposterId:null,order:[],turnIdx:0,speakIdx:0,clues:{},votes:{},ready:{},
+    correctVoters:{},revealIdx:0,voteIdx:0,voteRound:1,tieCandidates:null,tallyList:null,tallyStep:0,
+    eliminatedId:null,guessText:null,result:null,endAt:0,seq:0};
+}
+function mkPlayer(name,isBot){
+  var i=G?G.players.length:0;
+  return {id:'p'+(i+1)+'_'+Math.random().toString(36).slice(2,7),name:name,color:COLORS[i%COLORS.length],
+    icon:ICONS[i%ICONS.length],score:0,isBot:!!isBot,persona:isBot?Math.floor(Math.random()*PERSONAS.length):-1,connected:true};
+}
+function isGuest(){ return App.mode==='online'&&!App.isHost; }
+function view(){ return isGuest()?CS.pub:(G?pubState():null); }
+function P(id){ var V=view(),L=(V&&V.players)||[]; for(var i=0;i<L.length;i++) if(L[i].id===id) return L[i];
+  return {id:id,name:'?',icon:'❓',color:'#888',score:0}; }
+function privOf(pid){ if(!G) return {isImposter:false,word:null};
+  var imp=(pid===G.imposterId); return {isImposter:imp,word:imp?null:G.word}; }
+function myPriv(){
+  if(isGuest()) return CS.priv||{isImposter:false,word:null};
+  if(!G) return {isImposter:false,word:null};
+  if(App.mode==='local'){
+    var pid=(G.phase==='vote')?G.order[G.voteIdx]:(G.phase==='guess'?G.imposterId:G.order[G.revealIdx]);
+    return privOf(pid);
+  }
+  return privOf(App.myId);
+}
+function pubState(){
+  var revealRole=(['guess','result','final'].indexOf(G.phase)>=0);
+  var revealWord=(['result','final'].indexOf(G.phase)>=0);
+  return {phase:G.phase,mode:G.mode,talk:G.talk,round:G.round,maxRounds:G.maxRounds,roomCode:App.roomCode,
+    players:G.players.map(function(p){ return {id:p.id,name:p.name,color:p.color,icon:p.icon,score:p.score,
+      isBot:p.isBot,connected:p.connected,ready:!!G.ready[p.id],persona:p.isBot?PERSONAS[p.persona].n:''}; }),
+    order:G.order,turnIdx:G.turnIdx,speakIdx:G.speakIdx,clues:G.clues,revealIdx:G.revealIdx,voteIdx:G.voteIdx,
+    votedIds:Object.keys(G.votes),voteRound:G.voteRound,tieCandidates:G.tieCandidates,
+    tallyList:(G.phase==='tally')?G.tallyList:null,tallyStep:G.tallyStep,eliminatedId:G.eliminatedId,
+    imposterId:revealRole?G.imposterId:null,word:revealWord?G.word:null,wordCat:revealWord?G.wordCat:null,
+    guessText:G.guessText,result:G.result,endAt:G.endAt,now:Date.now(),seq:G.seq};
+}
+
+/* ========================= SYNC ========================= */
+function sync(){ if(!G) return; G.seq++;
+  if(App.mode==='online'&&App.isHost){ broadcast(); saveHost(); }
+  render(); }
+function saveHost(){ try{ if(G&&G.phase!=='lobby')
+  localStorage.setItem(LS_STATE,JSON.stringify({code:App.roomCode,myId:App.myId,G:G,ts:Date.now()})); }catch(e){} }
+function clearHost(){ try{ localStorage.removeItem(LS_STATE); }catch(e){} }
+
+/* ========================= P2P ========================= */
+function p2pReady(){ return typeof Peer!=='undefined'; }
+function hostCreate(cb,fixed){
+  if(!p2pReady()){ App.net='โหลดไลบรารีออนไลน์ไม่สำเร็จ'; toast('เชื่อมต่ออินเทอร์เน็ตแล้วลองใหม่'); render(); return; }
+  App.roomCode=fixed||genCode();
+  try{ if(App.peer) App.peer.destroy(); }catch(e){}
+  App.peer=new Peer(PEER_PREFIX+App.roomCode,{debug:0});
+  App.peer.on('open',function(){ App.net='ห้องพร้อมแล้ว ✅'; if(cb) cb(); render(); });
+  App.peer.on('error',function(e){
+    if(e&&e.type==='unavailable-id'&&!fixed){ hostCreate(cb); return; }
+    App.net='สัญญาณมีปัญหา ('+((e&&e.type)||'error')+')'; render(); });
+  App.peer.on('connection',function(conn){
+    conn.on('data',function(d){ guard(onHostData)(conn,d); });
+    conn.on('close',function(){ guard(onHostClose)(conn); });
+    conn.on('error',function(){});
+  });
+}
+function onHostData(conn,d){
+  if(!d||!d.t||!G) return;
+  if(d.t==='join'){
+    var name=String(d.name||'').trim().slice(0,14);
+    if(!name){ conn.send({t:'denied',msg:'กรุณาใส่ชื่อ'}); return; }
+    var ex=null,i;
+    for(i=0;i<G.players.length;i++) if(G.players[i].name===name) ex=G.players[i];
+    if(ex){
+      var old=App.connByPlayer[ex.id];
+      if(ex.connected&&old&&old.open&&old!==conn){ conn.send({t:'denied',msg:'ชื่อนี้ถูกใช้ในห้องแล้ว'}); return; }
+      ex.connected=true; App.connByPlayer[ex.id]=conn; conn._pid=ex.id;
+      conn.send({t:'joined',you:ex.id,pub:pubState(),priv:privOf(ex.id)});
+      toast(name+' กลับเข้าห้องแล้ว'); sync(); return;
+    }
+    if(G.phase!=='lobby'){ conn.send({t:'denied',msg:'เกมเริ่มแล้ว — เข้าได้เฉพาะชื่อเดิมที่หลุดไป'}); return; }
+    if(G.players.length>=15){ conn.send({t:'denied',msg:'ห้องเต็ม (สูงสุด 15 คน)'}); return; }
+    var p=mkPlayer(name,false); G.players.push(p); App.connByPlayer[p.id]=conn; conn._pid=p.id;
+    conn.send({t:'joined',you:p.id,pub:pubState(),priv:privOf(p.id)});
+    AU.play('ping'); toast(name+' เข้าร่วมห้อง'); sync(); return;
+  }
+  var pid=conn._pid; if(!pid) return;
+  if(d.t==='ready'){ if(G.phase==='reveal'){ G.ready[pid]=true; sync(); checkAllReady(); } }
+  else if(d.t==='clue') submitClue(pid,d.text);
+  else if(d.t==='vote') castVote(pid,d.target);
+  else if(d.t==='guess') submitGuess(pid,d.text);
+}
+function onHostClose(conn){
+  var pid=conn._pid; if(!pid||!G) return;
+  var p=null,i; for(i=0;i<G.players.length;i++) if(G.players[i].id===pid) p=G.players[i];
+  if(!p) return;
+  if(G.phase==='lobby'){ G.players=G.players.filter(function(x){ return x.id!==pid; }); reindex(); sync(); return; }
+  p.connected=false; toast(p.name+' หลุดการเชื่อมต่อ'); sync();
+  handleAbandon(pid);
+}
+function handleAbandon(pid){
+  if(!G) return;
+  if(G.phase==='reveal'&&!G.ready[pid]){ G.ready[pid]=true; sync(); checkAllReady(); }
+  else if(G.phase==='clue'&&G.order[G.turnIdx]===pid) schedule(function(){ submitClue(pid,'(ไม่อยู่ — ข้ามคำใบ้)'); },1200);
+  else if(G.phase==='vote'&&!G.votes[pid]) schedule(function(){
+    if(G&&G.phase==='vote'&&!G.votes[pid]){ var c=voteCandidates(pid); if(c.length) castVote(pid,pick(c)); } },2000);
+  else if(G.phase==='guess'&&pid===G.imposterId) schedule(function(){ submitGuess(pid,'(ไม่อยู่)'); },2000);
+}
+function broadcast(){
+  var pub=pubState();
+  for(var pid in App.connByPlayer){ var c=App.connByPlayer[pid];
+    if(c&&c.open){ try{ c.send({t:'state',pub:pub,priv:privOf(pid)}); }catch(e){} } }
+}
+function clientJoin(code,name){
+  if(!p2pReady()){ toast('โหลดไลบรารีออนไลน์ไม่สำเร็จ'); return; }
+  App.roomCode=code; App.net='กำลังเชื่อมต่อ...';
+  try{ if(App.peer) App.peer.destroy(); }catch(e){}
+  App.peer=new Peer({debug:0});
+  App.peer.on('open',function(){
+    var c=App.peer.connect(PEER_PREFIX+code,{reliable:true}); App.hostConn=c;
+    c.on('open',function(){ c.send({t:'join',name:name}); App.net='เชื่อมต่อแล้ว'; render(); });
+    c.on('data',function(d){ guard(onClientData)(d); });
+    c.on('close',function(){ App.net='หลุดการเชื่อมต่อ — กดเข้าร่วมใหม่ด้วยชื่อเดิม'; render(); });
+    c.on('error',function(){ App.net='เชื่อมต่อไม่สำเร็จ'; render(); });
+  });
+  App.peer.on('error',function(e){
+    App.net='เชื่อมต่อไม่สำเร็จ ('+((e&&e.type)||'error')+')';
+    if(e&&e.type==='peer-unavailable') toast('ไม่พบห้อง '+code+' — ตรวจรหัสอีกครั้ง');
+    render(); });
+  render();
+}
+function onClientData(d){
+  if(!d||!d.t) return;
+  if(d.t==='denied'){ App.net=d.msg||'ถูกปฏิเสธ'; toast(App.net); render(); return; }
+  if(d.t==='joined'){ App.myId=d.you; CS.pub=d.pub; CS.priv=d.priv; App.clockOffset=d.pub.now-Date.now();
+    App.net='อยู่ในห้องแล้ว ✅'; UI.step='pass'; UI.sel=null; render(); return; }
+  if(d.t==='state'){
+    var prev=CS.pub?CS.pub.phase:null;
+    CS.pub=d.pub; CS.priv=d.priv; App.clockOffset=d.pub.now-Date.now();
+    if(prev!==CS.pub.phase){ UI.step='pass'; UI.sel=null; phaseSfx(CS.pub.phase); }
+    render(); return;
+  }
+}
+function send(o){ if(App.hostConn&&App.hostConn.open){ try{ App.hostConn.send(o); }catch(e){} } }
+function phaseSfx(p){
+  if(p==='reveal') AU.play('suspense'); else if(p==='vote') AU.play('vote');
+  else if(p==='tally') AU.play('suspense'); else if(p==='elim') AU.play('elim');
+  else if(p==='result') AU.play('reveal'); else if(p==='final') AU.play('win');
+}
+
+/* ========================= ENGINE ========================= */
+function startGame(){
+  if(!G) return;
+  if(G.players.length<3){ toast('ต้องมีผู้เล่นอย่างน้อย 3 คน'); return; }
+  if(G.players.length>15){ toast('รองรับสูงสุด 15 คน'); return; }
+  var seen={},i;
+  for(i=0;i<G.players.length;i++){
+    var n=(G.players[i].name||'').trim();
+    if(!n){ toast('มีผู้เล่นที่ยังไม่ได้ใส่ชื่อ'); return; }
+    if(seen[n]){ toast('ชื่อซ้ำกัน: '+n); return; } seen[n]=1;
+  }
+  for(i=0;i<G.players.length;i++) G.players[i].score=0;
+  reindex(); G.round=0; startRound();
+}
+function startRound(){
+  clearTimers();
+  G.round++;
+  var w=pickWord();
+  G.word=w.w; G.wordCat=w.c;
+  G.imposterId=pick(G.players).id;
+  G.order=shuffle(G.players.map(function(p){ return p.id; }));
+  G.clues={}; G.votes={}; G.ready={}; G.correctVoters={};
+  G.revealIdx=0; G.turnIdx=0; G.speakIdx=0; G.voteIdx=0; G.voteRound=1;
+  G.tieCandidates=null; G.tallyList=null; G.tallyStep=0; G.eliminatedId=null;
+  G.guessText=null; G.result=null; G.endAt=0; G.phase='reveal';
+  UI.step='pass'; UI.sel=null;
+  G.players.forEach(function(p){ if(p.isBot) G.ready[p.id]=true; });
+  AU.play('suspense'); sync();
+}
+function checkAllReady(){
+  if(!G||G.phase!=='reveal') return;
+  var all=G.players.every(function(p){ return G.ready[p.id]||(!p.connected&&!p.isBot); });
+  if(all) afterReveal();
+}
+function afterReveal(){ if(G.talk) startDiscuss(TALK_MS); else beginClues(); }
+function beginClues(){ clearTimers(); G.phase='clue'; G.turnIdx=0; UI.step='pass'; sync(); maybeBotClue(); }
+function maybeBotClue(){
+  if(!G||G.phase!=='clue') return;
+  var pid=G.order[G.turnIdx]; if(!pid) return;
+  var p=null; G.players.forEach(function(x){ if(x.id===pid) p=x; });
+  if(!p) return;
+  var off=(!p.connected&&!p.isBot);
+  if(p.isBot||off){
+    var r=G.round,idx=G.turnIdx;
+    schedule(function(){
+      if(!G||G.phase!=='clue'||G.round!==r||G.turnIdx!==idx) return;
+      submitClue(pid,p.isBot?botClue(p):'(ไม่อยู่ — ข้ามคำใบ้)');
+    },1100+Math.random()*1700);
+  }
+}
+function botClue(bot){
+  var per=PERSONAS[bot.persona]||PERSONAS[0], c, r=Math.random();
+  if(bot.id===G.imposterId){
+    var given=G.order.filter(function(id){ return G.clues[id]; });
+    return (given.length&&r<per.skill)?pick(ECHO_CLUES):pick(VAGUE_CLUES);
+  }
+  var pool=CAT_CLUES[G.wordCat]||GENERIC_CLUES;
+  if(r<.17) c='คำนี้มี '+G.word.length+' ตัวอักษร';
+  else if(r<.29) c='ขึ้นต้นด้วยตัว "'+G.word.charAt(0)+'"';
+  else if(r<.37&&per.skill<.45) c='มันอยู่ในหมวด'+G.wordCat;
+  else c=pick(pool);
+  var used={}; G.order.forEach(function(id){ if(G.clues[id]) used[G.clues[id]]=1; });
+  var t=0; while(used[c]&&t<6){ c=pick(pool); t++; }
+  try{ c=per.style(c); }catch(e){}
+  return c;
+}
+function submitClue(pid,text){
+  if(!G||G.phase!=='clue'||G.order[G.turnIdx]!==pid) return;
+  text=String(text||'').trim().slice(0,60); if(!text) return;
+  G.clues[pid]=text; AU.play('click'); G.turnIdx++;
+  if(G.turnIdx>=G.order.length) startDiscuss(DISCUSS_MS);
+  else { UI.step='pass'; sync(); maybeBotClue(); }
+}
+function startDiscuss(ms){
+  clearTimers(); G.phase='discuss'; G.endAt=Date.now()+ms; G.speakIdx=0; AU.play('ping'); sync();
+  var r=G.round;
+  var h=setInterval(function(){
+    if(!G||G.phase!=='discuss'||G.round!==r){ clearInterval(h); return; }
+    var left=G.endAt-Date.now();
+    if(left<=5200&&left>0) AU.play('tick');
+    if(left<=0){ clearInterval(h); startVote(); }
+  },1000);
+  addInterval(h);
+}
+function nextSpeaker(){
+  if(!G||G.phase!=='discuss') return;
+  if(G.speakIdx<G.order.length){ G.speakIdx++; AU.play('ping'); sync(); }
+}
+function startVote(){
+  clearTimers(); G.phase='vote'; G.votes={}; G.voteIdx=0; G.endAt=0;
+  UI.step='pass'; UI.sel=null; AU.play('vote'); sync();
+  if(App.mode!=='local') scheduleBotVotes();
+}
+function voteCandidates(voterId){
+  var c=(G.tieCandidates&&G.voteRound>1)?G.tieCandidates.slice():G.players.map(function(p){ return p.id; });
+  return c.filter(function(id){ return id!==voterId; });
+}
+function scheduleBotVotes(){
+  var r=G.round,vr=G.voteRound;
+  G.players.forEach(function(p){
+    var off=(!p.connected&&!p.isBot);
+    if(!p.isBot&&!off) return;
+    schedule(function(){
+      if(!G||G.phase!=='vote'||G.round!==r||G.voteRound!==vr||G.votes[p.id]) return;
+      var t=p.isBot?botVote(p):pick(voteCandidates(p.id));
+      if(t) castVote(p.id,t);
+    },1500+Math.random()*4500);
+  });
+}
+function botVote(bot){
+  var cands=voteCandidates(bot.id); if(!cands.length) return null;
+  var per=PERSONAS[bot.persona]||PERSONAS[0],best=null,bs=-1e9;
+  cands.forEach(function(id){
+    var c=G.clues[id]||'',s=Math.random()*3;
+    if(G.talk){ s+=Math.random()*2; }
+    else{
+      if(!c) s+=4;
+      if(c.length<14) s+=2.2;
+      if(VAGUE_CLUES.indexOf(c)>=0||ECHO_CLUES.indexOf(c)>=0) s+=4.5*per.skill;
+      if(c.indexOf('ตัวอักษร')>=0||c.indexOf('ขึ้นต้น')>=0) s-=2.5;
+    }
+    s*=per.skill+.3;
+    if(s>bs){ bs=s; best=id; }
+  });
+  return best||cands[0];
+}
+function castVote(voterId,targetId){
+  if(!G||G.phase!=='vote'||!targetId||targetId===voterId) return;
+  if(voteCandidates(voterId).indexOf(targetId)<0) return;
+  if(G.votes[voterId]) return;
+  G.votes[voterId]=targetId; AU.play('vote');
+  if(Object.keys(G.votes).length>=G.players.length){ beginTally(); return; }
+  if(App.mode==='local'){
+    G.voteIdx++;
+    while(G.voteIdx<G.order.length&&G.votes[G.order[G.voteIdx]]) G.voteIdx++;
+    UI.step='pass'; UI.sel=null;
+  }
+  sync();
+}
+function beginTally(){
+  clearTimers();
+  var list=[];
+  G.order.forEach(function(id){ if(G.votes[id]) list.push({voter:id,target:G.votes[id]}); });
+  for(var v in G.votes) if(G.votes[v]===G.imposterId&&v!==G.imposterId) G.correctVoters[v]=true;
+  G.tallyList=shuffle(list); G.tallyStep=0; G.phase='tally'; AU.play('suspense'); sync();
+  var r=G.round,vr=G.voteRound;
+  function step(){
+    if(!G||G.phase!=='tally'||G.round!==r||G.voteRound!==vr) return;
+    if(G.tallyStep<G.tallyList.length){ G.tallyStep++; AU.play('tick'); sync(); schedule(step,800); }
+    else schedule(finishVote,1300);
+  }
+  schedule(step,800);
+}
+function finishVote(){
+  if(!G||G.phase!=='tally') return;
+  var counts={},max=0,k;
+  for(var v in G.votes){ var t=G.votes[v]; counts[t]=(counts[t]||0)+1; if(counts[t]>max) max=counts[t]; }
+  var leaders=[]; for(k in counts) if(counts[k]===max) leaders.push(k);
+  if(leaders.length>1){
+    if(G.voteRound===1){
+      G.tieCandidates=leaders; G.voteRound=2; G.votes={}; G.voteIdx=0;
+      G.tallyList=null; G.tallyStep=0; G.phase='vote'; UI.step='pass'; UI.sel=null;
+      toast('คะแนนเสมอ! เข้าสู่รอบโหวตตัดสิน'); AU.play('suspense'); sync();
+      if(App.mode!=='local') scheduleBotVotes();
+      return;
+    }
+    G.eliminatedId=null; endRound(); return;
+  }
+  G.eliminatedId=leaders[0]; G.phase='elim'; AU.play('elim'); sync();
+  var r=G.round;
+  schedule(function(){
+    if(!G||G.phase!=='elim'||G.round!==r) return;
+    if(G.eliminatedId===G.imposterId){ G.phase='guess'; UI.step='pass'; AU.play('suspense'); sync(); maybeBotGuess(); }
+    else endRound();
+  },2700);
+}
+function maybeBotGuess(){
+  var imp=null; G.players.forEach(function(p){ if(p.id===G.imposterId) imp=p; });
+  if(!imp) return;
+  var off=(!imp.connected&&!imp.isBot);
+  if(!imp.isBot&&!off) return;
+  var r=G.round;
+  schedule(function(){
+    if(!G||G.phase!=='guess'||G.round!==r) return;
+    var per=PERSONAS[imp.persona]||PERSONAS[0],g;
+    if(imp.isBot&&Math.random()<per.guess) g=G.word;
+    else { var o=WORD_LIST[Math.floor(Math.random()*WORD_LIST.length)].w; g=(o===G.word)?'ไม่ทราบ':o; }
+    submitGuess(G.imposterId,g);
+  },2500+Math.random()*1500);
+}
+function submitGuess(pid,text){
+  if(!G||G.phase!=='guess'||pid!==G.imposterId) return;
+  text=String(text||'').trim().slice(0,40); if(!text) return;
+  G.guessText=text; endRound();
+}
+function endRound(){
+  clearTimers();
+  var caught=(G.eliminatedId!=null&&G.eliminatedId===G.imposterId);
+  var guessRight=!!(caught&&G.guessText&&norm(G.guessText)===norm(G.word));
+  var deltas={},tags={},i;
+  G.players.forEach(function(p){ deltas[p.id]=0; tags[p.id]=[]; });
+  for(var v in G.correctVoters){ if(deltas[v]!=null){ deltas[v]+=1; tags[v].push('🎯 ชี้ถูก +1'); } }
+  if(!caught){ deltas[G.imposterId]+=1; tags[G.imposterId].push('🕶️ เนียนรอด +1'); }
+  if(guessRight){ deltas[G.imposterId]+=1; tags[G.imposterId].push('🧩 ทายคำถูก +1'); }
+  G.players.forEach(function(p){ p.score+=(deltas[p.id]||0); });
+  var impName=P(G.imposterId).name,txt,win;
+  if(!caught){
+    win='imp';
+    txt=(G.eliminatedId==null)?('คะแนนเสมอกันซ้ำสอง — จับสายลับไม่ได้! '+impName+' รอดตัวไป')
+      :('โหวตผิดคน! '+P(G.eliminatedId).name+' เป็นผู้บริสุทธิ์ สายลับตัวจริงคือ '+impName);
+  } else if(guessRight){ win='imp'; txt='จับสายลับได้ แต่ '+impName+' ทายคำลับถูก! พลิกกลับมาชนะ'; }
+  else { win='civ'; txt='จับสายลับได้ และ '+impName+' ทายคำลับผิด — ทีมนักสืบชนะ!'; }
+  G.result={text:txt,win:win,deltas:deltas,tags:tags,imposterId:G.imposterId,word:G.word,cat:G.wordCat,
+    guess:G.guessText,eliminated:G.eliminatedId,caught:caught,guessRight:guessRight};
+  G.phase='result'; AU.play(win==='civ'?'win':'lose'); sync();
+}
+function nextRound(){
+  if(!G) return;
+  if(G.round>=G.maxRounds){ clearTimers(); G.phase='final'; clearHost(); AU.play('win'); sync(); }
+  else startRound();
+}
+
+/* ========================= RENDER ========================= */
+function show(id){ ['screen-home','screen-lobby','screen-game'].forEach(function(s){
+  var e=$(s); if(e) e.classList.toggle('hidden',s!==id); }); }
+function render(){
+  try{
+    var chip=$('roomChip');
+    if(App.mode==='online'&&App.roomCode){ chip.textContent=App.roomCode; chip.classList.add('on'); }
+    else chip.classList.remove('on');
+    $('btnHome').classList.toggle('hidden',!App.mode);
+    $('btnMusic').classList.toggle('off',!AU.music);
+    $('btnSfx').classList.toggle('off',!AU.sfx);
+    var V=view();
+    if(!App.mode||!V){ show('screen-home'); updatePool(); checkResume(); return; }
+    if(V.phase==='lobby'){ show('screen-lobby'); renderLobby(V); return; }
+    show('screen-game'); renderGame(V);
+  }catch(err){ showError(err&&err.stack||err); }
+}
+function checkResume(){ var b=$('btnResume'); if(!b) return;
+  var raw=null; try{ raw=localStorage.getItem(LS_STATE); }catch(e){}
+  b.classList.toggle('hidden',!raw); }
+function av(p){ return '<div class="av" style="background:linear-gradient(145deg,'+p.color+',rgba(255,255,255,.25))">'+p.icon+'</div>'; }
+function reindex(){ if(!G) return; G.players.forEach(function(p,i){ p.color=COLORS[i%COLORS.length]; p.icon=ICONS[i%ICONS.length]; }); }
+
+/* ---- LOBBY ---- */
+function renderLobby(V){
+  var a=$('lobbyArea'),h='',rows;
+  if(App.mode==='online'&&!App.isHost&&!App.myId){
+    h='<h1>เข้าร่วมห้อง</h1><div class="card hero"><h2>🔑 กรอกรหัสห้อง 5 ตัว</h2>'+
+      '<input id="joinCode" maxlength="5" placeholder="รหัสห้อง" value="'+esc(App.roomCode||'')+'" style="text-transform:uppercase;letter-spacing:8px;text-align:center;font-weight:900;font-size:22px">'+
+      '<input id="joinName" maxlength="14" placeholder="ชื่อของคุณ (ใช้ชื่อเดิมเพื่อกลับเข้าเกม)">'+
+      '<button class="btn gold" data-act="do-join">🚪 เข้าร่วมห้อง</button>'+
+      '<div class="mut center">สถานะ: '+esc(App.net||'พร้อม')+'</div>'+
+      '<button class="btn ghost" data-act="go-home">ย้อนกลับ</button></div>';
+    a.innerHTML=h; return;
+  }
+  var canEdit=(App.mode!=='online')||App.isHost;
+  h='<h1>ห้องรอผู้เล่น</h1>';
+  if(App.mode==='online'){
+    h+='<div class="card hero center"><div class="mut">รหัสห้อง — บอกเพื่อนให้กรอก</div>'+
+      '<div style="font-size:42px;font-weight:900;letter-spacing:12px;margin:6px 0;background:linear-gradient(90deg,#ffd88a,#ff9ecb);-webkit-background-clip:text;background-clip:text;color:transparent">'+esc(App.roomCode||'-----')+'</div>'+
+      '<div class="mut">'+esc(App.net||'...')+' • '+(App.isHost?'คุณคือโฮสต์':'ผู้เล่น')+'</div>'+
+      '<div class="pill cool" style="margin-top:8px">🎙️ โหมดนี้ให้พูดคุยกันผ่านแอปอื่น เกมจับเวลาให้ 5 นาที</div></div>';
+  }
+  rows=V.players.map(function(p){
+    return '<div class="prow">'+av(p)+'<span class="pname">'+esc(p.name)+
+      (p.isBot?' <span class="mut">• '+esc(p.persona)+'</span>':'')+'</span>'+
+      (p.id===App.myId?'<span class="badge ok">คุณ</span>':'')+
+      (canEdit&&App.mode!=='online'&&V.players.length>3?'<button class="btn sm danger" data-act="rm" data-v="'+p.id+'">ลบ</button>':'')+
+      '</div>'; }).join('');
+  h+='<div class="card"><h2>👥 ผู้เล่น ('+V.players.length+'/15)</h2>'+
+     '<div class="plist">'+(rows||'<div class="mut">ยังไม่มีผู้เล่น</div>')+'</div>';
+  if(canEdit&&App.mode!=='solo'){
+    h+='<div class="row" style="margin-top:10px"><input id="newName" class="grow" maxlength="14" placeholder="ชื่อผู้เล่นใหม่">'+
+       '<button class="btn sm gold" data-act="addp" style="white-space:nowrap">➕ เพิ่ม</button></div>';
+    if(App.mode==='online') h+='<button class="btn sm cyan" data-act="addbot">🤖 เพิ่มบอท</button>';
+  }
+  if(canEdit&&App.mode==='solo'){
+    h+='<div class="row" style="margin-top:8px"><button class="btn sm danger" data-act="botminus">− ลดบอท</button>'+
+       '<button class="btn sm cyan" data-act="botplus">+ เพิ่มบอท</button></div>';
+  }
+  h+='</div>';
+  if(canEdit){
+    h+='<div class="card"><h2>⚙️ ตั้งค่าเกม</h2><div class="mut">จำนวนรอบที่จะเล่น</div><select id="roundSel">'+
+       [1,2,3,4,5,6,8,10].map(function(n){ return '<option value="'+n+'"'+((G&&G.maxRounds===n)?' selected':'')+'>'+n+' รอบ</option>'; }).join('')+
+       '</select><button class="btn primary" data-act="start"'+(V.players.length<3?' disabled':'')+'>🚨 เริ่มปฏิบัติการ</button>'+
+       (V.players.length<3?'<div class="mut center">ต้องมีอย่างน้อย 3 คน</div>':'')+
+       '<button class="btn ghost" data-act="go-home">ออกจากห้อง</button></div>';
+  } else {
+    h+='<div class="card center"><div class="dots"><span></span><span></span><span></span></div>'+
+       '<div class="mut">รอโฮสต์เริ่มเกม... อย่าปิดหน้านี้</div></div>';
+  }
+  a.innerHTML=h;
+}
+
+/* ---- GAME ---- */
+function renderGame(V){
+  var h='<div style="margin-bottom:10px"><span class="pill hot">รอบ '+V.round+'/'+V.maxRounds+'</span>'+
+    '<span class="pill">👥 '+V.players.length+' คน</span><span class="pill cool">'+phaseName(V.phase)+'</span></div>';
+  switch(V.phase){
+    case 'reveal': h+=rReveal(V); break;
+    case 'clue': h+=rClue(V); break;
+    case 'discuss': h+=rDiscuss(V); break;
+    case 'vote': h+=rVote(V); break;
+    case 'tally': h+=rTally(V); break;
+    case 'elim': h+=rElim(V); break;
+    case 'guess': h+=rGuess(V); break;
+    case 'result': h+=rResult(V); break;
+    case 'final': h+=rFinal(V); break;
+    default: h+='<div class="card center">กำลังโหลด...</div>';
+  }
+  $('phaseArea').innerHTML=h;
+  var inp=$('clueInput')||$('guessInput'); if(inp) setTimeout(function(){ try{ inp.focus(); }catch(e){} },80);
+}
+function phaseName(p){ return {reveal:'🗂️ เปิดแฟ้มลับ',clue:'✍️ ให้คำใบ้',discuss:'🎙️ พูดคุย',vote:'🗳️ โหวต',
+  tally:'🔍 นับคะแนน',elim:'⚡ ผลโหวต',guess:'🧩 สายลับทายคำ',result:'📊 สรุปรอบ',final:'🏆 จบเกม'}[p]||p; }
+function isHostSide(){ return App.mode!=='online'||App.isHost; }
+function clueList(V){
+  return '<div class="plist">'+V.order.map(function(id,i){
+    var p=P(id),c=V.clues[id],now=(i===V.turnIdx&&V.phase==='clue');
+    return '<div class="prow'+(now?' now':'')+'">'+av(p)+'<span class="pname">'+esc(p.name)+'</span>'+
+      (c?'<span class="badge ok">ใบ้แล้ว</span>':(now?'<span class="badge wait">กำลังพูด</span>':'<span class="badge">รอคิว</span>'))+
+      (c?'<div class="clue">“'+esc(c)+'”</div>':'')+'</div>'; }).join('')+'</div>';
+}
+/* REVEAL */
+function rReveal(V){
+  if(App.mode==='local'){
+    var pid=V.order[V.revealIdx],p=P(pid);
+    if(UI.step!=='card'){
+      return '<div class="card glow passbox"><span class="stamp">CLASSIFIED</span>'+
+        '<span class="phone-ico">📱</span>'+
+        '<div class="mut">ส่งโทรศัพท์ให้ผู้เล่นคนถัดไป</div>'+
+        '<div class="big">'+esc(p.name)+' '+p.icon+'</div>'+
+        '<div class="dots"><span></span><span></span><span></span></div>'+
+        '<div class="mut">คนอื่นห้ามมอง! พร้อมแล้วกดปุ่มด้านล่าง</div>'+
+        '<button class="btn gold" data-act="reveal-open">🔓 ฉันคือ '+esc(p.name)+' — เปิดแฟ้มลับ</button>'+
+        '<div class="mut">('+(V.revealIdx+1)+' / '+V.order.length+')</div></div>';
+    }
+    return secretCard(p,privOf(pid))+'<button class="btn danger" data-act="reveal-hide">🙈 ซ่อนข้อมูล แล้วส่งเครื่องต่อ</button>';
+  }
+  var me=P(App.myId),meReady=false;
+  V.players.forEach(function(x){ if(x.id===App.myId) meReady=x.ready; });
+  var waiting=V.players.filter(function(x){ return !x.ready; }).length;
+  if(meReady||UI.step==='done'){
+    return '<div class="card passbox"><span class="stamp ok">SECURED</span>'+
+      '<div class="big">ปิดผนึกข้อมูลแล้ว</div>'+
+      '<div class="dots"><span></span><span></span><span></span></div>'+
+      '<div class="mut">รออีก '+waiting+' คนเปิดแฟ้ม</div></div>'+strip(V);
+  }
+  if(UI.step!=='card'){
+    return '<div class="card glow passbox"><span class="stamp">TOP SECRET</span>'+
+      '<span class="phone-ico">🗂️</span><div class="mut">แฟ้มลับของคุณพร้อมแล้ว</div>'+
+      '<div class="big">'+esc(me.name)+' '+me.icon+'</div>'+
+      '<div class="mut">ตรวจให้แน่ใจว่าไม่มีใครมองจอคุณ</div>'+
+      '<button class="btn gold" data-act="reveal-open">🔓 เปิดแฟ้มลับของฉัน</button></div>';
+  }
+  return secretCard(me,myPriv())+'<button class="btn danger" data-act="reveal-ready">✅ จำได้แล้ว ปิดแฟ้ม</button>';
+}
+function secretCard(p,priv){
+  if(priv.isImposter){
+    return '<div class="secret"><div class="role">— ภารกิจของคุณ —</div>'+
+      '<div class="word imp">คุณคือ สายลับ 🕶️</div>'+
+      '<div style="position:relative"><span class="redacted">████████████</span></div>'+
+      '<div class="mut" style="position:relative;margin-top:10px;color:#e6e9ff">คุณ <b>ไม่ได้รับคำลับ</b> — ฟังคำใบ้คนอื่นแล้วเนียนให้ได้<br>ถ้าถูกจับได้ ยังมีสิทธิ์ทายคำลับ 1 ครั้ง</div>'+
+      '<div class="mut" style="position:relative;margin-top:8px">ผู้เล่น: '+esc(p.name)+'</div></div>';
+  }
+  return '<div class="secret"><div class="role">— คำลับประจำรอบ —</div>'+
+    '<div class="word">'+esc(priv.word)+'</div>'+
+    '<div class="mut" style="position:relative;color:#e6e9ff">คุณคือ <b>นักสืบ</b> — ใบ้ให้เพื่อนเข้าใจ แต่สายลับต้องเดาไม่ออก</div>'+
+    '<div class="mut" style="position:relative;margin-top:8px">ผู้เล่น: '+esc(p.name)+'</div></div>';
+}
+function strip(V){
+  return '<div class="card"><h3>สถานะผู้เล่น</h3><div class="plist">'+V.players.map(function(p){
+    return '<div class="prow">'+av(p)+'<span class="pname">'+esc(p.name)+'</span>'+
+      (p.ready?'<span class="badge ok">พร้อม</span>':'<span class="badge wait">กำลังดู</span>')+
+      (p.connected===false?'<span class="badge bad">หลุด</span>':'')+'</div>'; }).join('')+'</div></div>';
+}
+/* CLUE */
+function rClue(V){
+  var pid=V.order[V.turnIdx],p=P(pid),mine=(App.mode==='local')||(pid===App.myId);
+  var h='<div class="card glow"><h2>✍️ รอบให้คำใบ้</h2><div class="mut">พูดคำใบ้สั้น ๆ 1 ครั้ง ห้ามพูดคำลับตรง ๆ</div>';
+  if(App.mode==='local'&&UI.step!=='input'){
+    h+='<div class="passbox"><span class="phone-ico">📱</span><div class="mut">ส่งโทรศัพท์ให้</div>'+
+       '<div class="big">'+esc(p.name)+' '+p.icon+'</div>'+
+       '<button class="btn gold" data-act="clue-open">พร้อมพิมพ์คำใบ้</button></div></div>';
+    return h+clueList(V);
+  }
+  if(mine){
+    h+='<div class="row" style="margin:10px 0">'+av(p)+'<b>'+esc(p.name)+'</b></div>'+
+       '<input id="clueInput" maxlength="60" placeholder="พิมพ์คำใบ้ของคุณ...">'+
+       '<button class="btn primary" data-act="clue-send">📨 ส่งคำใบ้</button>';
+  } else {
+    h+='<div class="passbox"><div class="dots"><span></span><span></span><span></span></div>'+
+       '<div class="big">รอ '+esc(p.name)+' ให้คำใบ้</div></div>';
+  }
+  return h+'</div>'+clueList(V);
+}
+/* DISCUSS / TALK */
+function rDiscuss(V){
+  var left=V.endAt-(Date.now()+App.clockOffset);
+  var total=V.talk?TALK_MS:DISCUSS_MS;
+  var pct=Math.max(0,Math.min(100,left/total*100));
+  var h='<div class="card hero center"><h2>'+(V.talk?'🎙️ ช่วงพูดคุย &amp; ให้คำใบ้ด้วยเสียง':'💬 ช่วงถกเถียง')+'</h2>';
+  if(V.talk) h+='<div class="mut">คุยกันผ่านแอปที่ใช้อยู่ (ไลน์ / ดิสคอร์ด / โทร) เกมนี้เป็นสื่อกลางเฉย ๆ<br>ผลัดกันใบ้ตามลำดับด้านล่าง คนละ 1 คำใบ้สั้น ๆ</div>';
+  else h+='<div class="mut">คุยกันให้เต็มที่ ใครพิรุธ ใครใบ้กว้างเกินไป?</div>';
+  h+='<div class="timer'+(left<30000?' warn':'')+'" id="phaseTimer">'+fmt(left)+'</div>'+
+     '<div class="ring"><i id="phaseBar" style="width:'+pct+'%"></i></div>';
+  if(isHostSide()) h+='<button class="btn gold" data-act="to-vote">⏭️ ข้ามไปโหวตจับสายลับเลย</button>';
+  else h+='<div class="mut">รอโฮสต์กดเริ่มโหวต หรือรอหมดเวลา</div>';
+  h+='</div>';
+  if(V.talk){
+    var cur=V.speakIdx;
+    h+='<div class="card"><h3>🎤 ลำดับการพูด</h3><div class="plist">'+V.order.map(function(id,i){
+      var p=P(id),st=(i<cur)?'<span class="badge ok">พูดแล้ว</span>':(i===cur?'<span class="badge wait">กำลังพูด</span>':'<span class="badge">รอคิว</span>');
+      return '<div class="prow'+(i===cur?' now':'')+'">'+'<span class="badge num">'+(i+1)+'</span>'+av(p)+
+        '<span class="pname">'+esc(p.name)+'</span>'+st+
+        (p.connected===false?'<span class="badge bad">หลุด</span>':'')+'</div>';
+    }).join('')+'</div>';
+    if(isHostSide()) h+='<button class="btn cyan" data-act="next-speaker"'+(cur>=V.order.length?' disabled':'')+'>▶️ '+(cur>=V.order.length?'พูดครบทุกคนแล้ว':'คนต่อไปพูด')+'</button>';
+    h+='</div>';
+  } else h+=clueList(V);
+  return h;
+}
+/* VOTE */
+function rVote(V){
+  var tie=V.tieCandidates&&V.voteRound>1;
+  var head='<div class="card glow"><h2>🗳️ '+(tie?'โหวตตัดสิน (เสมอ)':'ลงคะแนนจับสายลับ')+'</h2>'+
+    '<div class="mut">'+(tie?'เลือกได้เฉพาะผู้ต้องสงสัยที่คะแนนเท่ากัน — ถ้ายังเสมออีก ถือว่าจับไม่ได้':'ห้ามโหวตตัวเอง • คะแนนเป็นความลับจนกว่าจะเปิดผล')+'</div>'+
+    '<div class="ring"><i style="width:'+Math.round(V.votedIds.length/Math.max(1,V.players.length)*100)+'%"></i></div>'+
+    '<div class="mut center">โหวตแล้ว <b>'+V.votedIds.length+'</b> / '+V.players.length+' คน</div></div>';
+  if(App.mode==='local'){
+    var pid=V.order[V.voteIdx],p=P(pid);
+    if(!pid) return head+'<div class="card center mut">กำลังสรุปผล...</div>';
+    if(UI.step!=='input'){
+      return head+'<div class="card passbox"><span class="phone-ico">📱</span><div class="mut">ส่งโทรศัพท์ให้</div>'+
+        '<div class="big">'+esc(p.name)+' '+p.icon+'</div>'+
+        '<div class="mut">ห้ามให้คนอื่นเห็นการโหวตของคุณ</div>'+
+        '<button class="btn gold" data-act="vote-open">🗳️ ฉันพร้อมโหวต</button></div>';
+    }
+    return head+voteGrid(V,pid);
+  }
+  if(V.votedIds.indexOf(App.myId)>=0){
+    return head+'<div class="card passbox"><span class="stamp ok">VOTE SEALED</span>'+
+      '<div class="big">ส่งคะแนนแล้ว</div><div class="dots"><span></span><span></span><span></span></div>'+
+      '<div class="mut">รอผู้เล่นที่เหลือ...</div></div>';
+  }
+  return head+voteGrid(V,App.myId);
+}
+function voteGrid(V,voterId){
+  var cands=((V.tieCandidates&&V.voteRound>1)?V.tieCandidates.slice():V.players.map(function(p){ return p.id; }))
+    .filter(function(id){ return id!==voterId; });
+  var h='<div class="card"><h3>เลือกผู้ต้องสงสัย</h3><div class="votegrid">';
+  cands.forEach(function(id){ var p=P(id);
+    h+='<button class="vbtn'+(UI.sel===id?' sel':'')+'" data-act="vote-sel" data-v="'+id+'">'+av(p)+
+       '<span class="pname">'+esc(p.name)+'</span></button>'; });
+  h+='</div>';
+  if(!V.talk){
+    h+='<div class="clue" style="margin-top:12px">'+cands.map(function(id){
+      return '<b>'+esc(P(id).name)+'</b> “'+esc(V.clues[id]||'-')+'”'; }).join(' &nbsp;•&nbsp; ')+'</div>';
+  }
+  h+='<button class="btn primary" data-act="vote-send"'+(UI.sel?'':' disabled')+'>✅ ยืนยันการโหวต</button></div>';
+  return h;
+}
+/* TALLY */
+function rTally(V){
+  var counts={},shown=[],i,k,maxc=1;
+  var list=V.tallyList||[];
+  for(i=0;i<V.tallyStep&&i<list.length;i++){ var e=list[i]; counts[e.target]=(counts[e.target]||0)+1; shown.push(e); }
+  for(k in counts) if(counts[k]>maxc) maxc=counts[k];
+  var h='<div class="card hero center"><h2>🔍 กำลังนับคะแนน...</h2><div class="mut">ลุ้นกันทีละใบ</div></div>';
+  h+='<div class="card"><div class="tally">';
+  h+=shown.slice().reverse().map(function(e){
+    return '<div class="tline">'+av(P(e.voter))+'<span class="mut">โหวต</span>'+av(P(e.target))+
+      '<b class="pname">'+esc(P(e.target).name)+'</b></div>'; }).join('');
+  if(!shown.length) h+='<div class="mut center">กำลังสับบัตรลงคะแนน...</div>';
+  h+='</div></div><div class="card"><h3>คะแนนปัจจุบัน</h3><div class="tally">';
+  V.players.forEach(function(p){ var c=counts[p.id]||0;
+    h+='<div class="tline">'+av(p)+'<span class="pname">'+esc(p.name)+'</span>'+
+       '<div class="bar"><i style="width:'+Math.round(c/maxc*100)+'%"></i></div><b>'+c+'</b></div>'; });
+  return h+'</div></div>';
+}
+/* ELIM */
+function rElim(V){
+  var p=P(V.eliminatedId);
+  return '<div class="card glow elim"><span class="stamp">RESULT</span>'+
+    '<div class="mut" style="margin-top:14px">ผู้ที่ถูกโหวตมากที่สุดคือ</div>'+
+    '<div class="who" style="color:'+p.color+'">'+p.icon+' '+esc(p.name)+'</div>'+
+    '<div class="mut">กำลังเปิดแฟ้มประวัติ...</div>'+
+    '<div class="dots"><span></span><span></span><span></span></div></div>';
+}
+/* GUESS */
+function rGuess(V){
+  var imp=P(V.imposterId);
+  var head='<div class="card hero center"><span class="stamp">EXPOSED</span><h2 style="margin-top:12px">จับสายลับได้แล้ว!</h2>'+
+    '<div class="secret"><div class="role">สายลับตัวจริงคือ</div><div class="word imp">'+imp.icon+' '+esc(imp.name)+'</div></div>'+
+    '<div class="mut" style="margin-top:12px">ยังไม่จบ — สายลับมีสิทธิ์ทายคำลับ 1 ครั้ง<br><b>ทายถูกได้ +1 คะแนน</b></div></div>';
+  var mine=(App.mode==='local')||(App.myId===V.imposterId);
+  if(App.mode==='local'&&UI.step!=='input'){
+    return head+'<div class="card passbox"><span class="phone-ico">📱</span><div class="mut">ส่งโทรศัพท์ให้สายลับ</div>'+
+      '<div class="big">'+esc(imp.name)+'</div>'+
+      '<button class="btn danger" data-act="guess-open">🕶️ ฉันคือสายลับ — ขอทายคำ</button></div>';
+  }
+  if(mine){
+    return head+'<div class="card"><h3>🧩 ทายคำลับ</h3>'+
+      '<input id="guessInput" maxlength="40" placeholder="พิมพ์คำที่คิดว่าเป็นคำลับ...">'+
+      '<button class="btn danger" data-act="guess-send">🎯 ยืนยันคำตอบสุดท้าย</button>'+
+      '<div class="mut">สะกดให้ถูกต้อง (ระบบไม่สนใจช่องว่าง)</div></div>';
+  }
+  return head+'<div class="card passbox"><div class="dots"><span></span><span></span><span></span></div>'+
+    '<div class="big">รอสายลับทายคำ...</div></div>';
+}
+/* RESULT */
+function rResult(V){
+  var r=V.result||{},imp=P(r.imposterId);
+  var h='<div class="banner '+(r.win==='civ'?'civ':'imp')+'">'+(r.win==='civ'?'🎉 ทีมนักสืบชนะรอบนี้!':'🕶️ สายลับชนะรอบนี้!')+'</div>';
+  h+='<div class="card center"><div class="secret"><div class="role">'+esc(r.cat||'')+'</div>'+
+     '<div class="word">'+esc(r.word||'')+'</div>'+
+     '<div class="mut" style="position:relative;color:#fff">สายลับคือ <b>'+imp.icon+' '+esc(imp.name)+'</b></div>'+
+     (r.guess?'<div class="mut" style="position:relative;margin-top:6px">ทายว่า: “'+esc(r.guess)+'” '+(r.guessRight?'✅ ถูก!':'❌ ผิด'):'')+
+     (r.guess?'</div>':'')+'</div>'+
+     '<div class="mut" style="margin-top:14px">'+esc(r.text||'')+'</div></div>';
+  h+='<div class="card"><h3>💯 คะแนนรอบนี้</h3><div class="plist">'+
+     V.players.slice().sort(function(a,b){ return b.score-a.score; }).map(function(p){
+       var d=(r.deltas&&r.deltas[p.id])||0,tg=(r.tags&&r.tags[p.id])||[];
+       return '<div class="prow">'+av(p)+'<span class="pname">'+esc(p.name)+
+         (p.id===r.imposterId?' <span class="mut">(สายลับ)</span>':'')+'</span>'+
+         '<span class="badge '+(d>0?'ok':'')+'">'+(d>0?'+'+d:'+0')+'</span>'+
+         '<span class="badge num">รวม '+p.score+'</span>'+
+         (tg.length?'<div style="width:100%">'+tg.map(function(t){ return '<span class="scoretag">'+esc(t)+'</span>'; }).join('')+'</div>':'')+
+         '</div>'; }).join('')+'</div></div>';
+  if(!V.talk) h+='<div class="card"><h3>📝 คำใบ้ทั้งหมด</h3>'+clueList(V)+'</div>';
+  if(isHostSide()) h+='<button class="btn primary" data-act="next-round">'+(V.round>=V.maxRounds?'🏁 ดูผลสรุปรวม':'▶️ เริ่มรอบที่ '+(V.round+1))+'</button>';
+  else h+='<div class="card center mut">รอโฮสต์กดไปรอบต่อไป...</div>';
+  return h;
+}
+/* FINAL */
+function rFinal(V){
+  var sorted=V.players.slice().sort(function(a,b){ return b.score-a.score; });
+  var top=sorted[0]||{score:0},champs=sorted.filter(function(p){ return p.score===top.score; });
+  var h='<div class="card hero center"><span class="trophy">🏆</span><h1 style="margin:6px 0">ปิดคดีแล้ว</h1>'+
+    '<div class="secret"><div class="role">ผู้ชนะ</div><div class="word">'+champs.map(function(p){ return esc(p.name); }).join(' &amp; ')+'</div>'+
+    '<div class="mut" style="position:relative;color:#fff">'+top.score+' คะแนน</div></div></div>';
+  h+='<div class="card"><h3>📊 ตารางคะแนนรวม</h3><div class="plist">'+
+     sorted.map(function(p,i){ return '<div class="prow">'+av(p)+'<span class="pname">'+(i===0?'👑 ':(i+1)+'. ')+esc(p.name)+'</span>'+
+       '<span class="badge num">'+p.score+' คะแนน</span></div>'; }).join('')+'</div></div>';
+  if(isHostSide()) h+='<button class="btn primary" data-act="play-again">🔁 เล่นอีกครั้ง (เริ่มคะแนนใหม่)</button>';
+  return h+'<button class="btn ghost" data-act="go-home">🏠 กลับหน้าแรก</button>';
+}
+
+/* ========================= ACTIONS ========================= */
+document.addEventListener('click',guard(function(ev){
+  var el=ev.target.closest?ev.target.closest('[data-act]'):null; if(!el) return;
+  AU.unlock();
+  var act=el.getAttribute('data-act'),v=el.getAttribute('data-v');
+  switch(act){
+    case 'toggle-music': AU.music=!AU.music; if(AU.music){ AU.init(); AU.startMusic(); } else AU.stopMusic();
+      toast(AU.music?'🎵 เปิดเพลงประกอบ':'🔇 ปิดเพลงประกอบ'); render(); break;
+    case 'toggle-sfx': AU.sfx=!AU.sfx; toast(AU.sfx?'🔊 เปิดเสียงเอฟเฟกต์':'🔇 ปิดเสียงเอฟเฟกต์'); render(); break;
+    case 'go-home': goHome(); break;
+    case 'reset-words': resetUsed(); break;
+    case 'resume': resumeHost(); break;
+    case 'mode': setMode(v); break;
+    case 'mk-host': mkHost(); break;
+    case 'mk-guest': App.isHost=false; App.myId=null; G=newGame('online',3); CS={pub:null,priv:null}; render(); break;
+    case 'addp': addPlayer(); break;
+    case 'addbot': addBot(); break;
+    case 'rm': if(G){ G.players=G.players.filter(function(p){ return p.id!==v; }); reindex(); render(); } break;
+    case 'botplus': addBot(); break;
+    case 'botminus': delBot(); break;
+    case 'do-join': doJoin(); break;
+    case 'start': if(G){ var s=$('roundSel'); if(s) G.maxRounds=parseInt(s.value,10)||3; } AU.play('reveal'); startGame(); break;
+    case 'reveal-open': UI.step='card'; AU.play('reveal'); render(); break;
+    case 'reveal-hide': G.revealIdx++; UI.step='pass';
+      if(G.revealIdx>=G.order.length) afterReveal(); else sync(); break;
+    case 'reveal-ready': UI.step='done';
+      if(isGuest()){ send({t:'ready'}); render(); }
+      else { G.ready[App.myId]=true; sync(); checkAllReady(); } break;
+    case 'clue-open': UI.step='input'; render(); break;
+    case 'clue-send': sendClue(); break;
+    case 'next-speaker': if(isHostSide()) nextSpeaker(); break;
+    case 'to-vote': if(G&&G.phase==='discuss') startVote(); break;
+    case 'vote-open': UI.step='input'; UI.sel=null; render(); break;
+    case 'vote-sel': UI.sel=v; AU.play('click'); render(); break;
+    case 'vote-send': sendVote(); break;
+    case 'guess-open': UI.step='input'; render(); break;
+    case 'guess-send': sendGuess(); break;
+    case 'next-round': if(isHostSide()&&G) nextRound(); break;
+    case 'play-again': if(isHostSide()&&G){ clearTimers(); G.players.forEach(function(p){ p.score=0; });
+      G.round=0; G.phase='lobby'; G.result=null; sync(); } break;
+  }
+}));
+document.addEventListener('keydown',guard(function(e){
+  if(e.key!=='Enter') return;
+  var id=e.target&&e.target.id;
+  if(id==='clueInput') sendClue();
+  else if(id==='guessInput') sendGuess();
+  else if(id==='newName') addPlayer();
+  else if(id==='joinName'||id==='joinCode') doJoin();
+}));
+
+function setMode(m){
+  clearTimers();
+  App.mode=m; App.isHost=(m!=='online'); App.myId=null; App.roomCode=null; App.hostConn=null;
+  App.connByPlayer={}; App.net=''; CS={pub:null,priv:null}; UI={step:'pass',sel:null};
+  G=newGame(m,3); AU.unlock(); AU.play('click');
+  if(m==='local'){ ['นักสืบ A','นักสืบ B','นักสืบ C'].forEach(function(n){ G.players.push(mkPlayer(n,false)); }); render(); }
+  else if(m==='solo'){
+    var me=mkPlayer('คุณ',false); G.players.push(me); App.myId=me.id;
+    for(var i=0;i<4;i++) G.players.push(mkPlayer(BOT_NAMES[i],true));
+    render();
+  } else {
+    show('screen-lobby');
+    $('lobbyArea').innerHTML='<h1>เล่นออนไลน์</h1><div class="card hero"><h2>🌐 เลือกบทบาท</h2>'+
+      '<input id="hostName" maxlength="14" placeholder="ชื่อของคุณ (สำหรับสร้างห้อง)">'+
+      '<button class="btn gold" data-act="mk-host">🏠 สร้างห้องใหม่ (คุณเป็นโฮสต์)</button>'+
+      '<div class="mut center" style="margin:10px 0">— หรือ —</div>'+
+      '<button class="btn cyan" data-act="mk-guest">🔑 เข้าร่วมห้องด้วยรหัส</button>'+
+      '<button class="btn ghost" data-act="go-home">ย้อนกลับ</button>'+
+      '<div class="mut">โฮสต์คือเครื่องที่รันเกมทั้งหมด ห้ามปิดหน้าจอระหว่างเล่น</div></div>';
+  }
+}
+function mkHost(){
+  var n=(($('hostName')&&$('hostName').value)||'').trim().slice(0,14)||'โฮสต์';
+  App.isHost=true; G=newGame('online',3);
+  var me=mkPlayer(n,false); G.players.push(me); App.myId=me.id;
+  App.net='กำลังเปิดห้อง...'; render();
+  hostCreate(function(){ AU.play('ping'); toast('ห้องพร้อม! รหัส '+App.roomCode); render(); });
+}
+function addPlayer(){
+  var i=$('newName'); if(!i||!G) return;
+  var n=i.value.trim().slice(0,14);
+  if(!n){ toast('กรุณาใส่ชื่อ'); return; }
+  if(G.players.length>=15){ toast('สูงสุด 15 คน'); return; }
+  for(var k=0;k<G.players.length;k++) if(G.players[k].name===n){ toast('ชื่อนี้ซ้ำ'); return; }
+  G.players.push(mkPlayer(n,false)); i.value=''; AU.play('click');
+  if(App.mode==='online'&&App.isHost) sync(); else render();
+}
+function addBot(){
+  if(!G) return;
+  if(G.players.length>=15){ toast('สูงสุด 15 คน'); return; }
+  var used={}; G.players.forEach(function(p){ used[p.name]=1; });
+  var name=null;
+  for(var i=0;i<BOT_NAMES.length;i++) if(!used[BOT_NAMES[i]]){ name=BOT_NAMES[i]; break; }
+  if(!name) name='บอท '+(G.players.length+1);
+  G.players.push(mkPlayer(name,true)); AU.play('click');
+  if(App.mode==='online'&&App.isHost) sync(); else render();
+}
+function delBot(){
+  if(!G) return;
+  if(G.players.length<=3){ toast('ต้องมีอย่างน้อย 3 คน'); return; }
+  for(var i=G.players.length-1;i>=0;i--) if(G.players[i].isBot){ G.players.splice(i,1); break; }
+  reindex(); AU.play('click');
+  if(App.mode==='online'&&App.isHost) sync(); else render();
+}
+function doJoin(){
+  var c=(($('joinCode')&&$('joinCode').value)||'').trim().toUpperCase().slice(0,5);
+  var n=(($('joinName')&&$('joinName').value)||'').trim().slice(0,14);
+  if(c.length!==5){ toast('รหัสห้องต้องมี 5 ตัวอักษร'); return; }
+  if(!n){ toast('กรุณาใส่ชื่อ'); return; }
+  App.isHost=false; clientJoin(c,n);
+}
+function sendClue(){
+  var i=$('clueInput'); if(!i) return;
+  var t=i.value.trim(); if(!t){ toast('พิมพ์คำใบ้ก่อน'); return; }
+  i.value='';
+  if(isGuest()){ send({t:'clue',text:t}); UI.step='pass'; render(); }
+  else { var pid=(App.mode==='local')?G.order[G.turnIdx]:App.myId; UI.step='pass'; submitClue(pid,t); }
+}
+function sendVote(){
+  if(!UI.sel){ toast('เลือกผู้ต้องสงสัยก่อน'); return; }
+  var t=UI.sel;
+  if(isGuest()){ send({t:'vote',target:t}); UI.sel=null; UI.step='done'; render(); }
+  else { var voter=(App.mode==='local')?G.order[G.voteIdx]:App.myId; UI.sel=null; castVote(voter,t); }
+}
+function sendGuess(){
+  var i=$('guessInput'); if(!i) return;
+  var t=i.value.trim(); if(!t){ toast('พิมพ์คำที่จะทายก่อน'); return; }
+  i.value=''; AU.play('suspense');
+  if(isGuest()) send({t:'guess',text:t}); else submitGuess(G.imposterId,t);
+}
+function goHome(){
+  clearTimers();
+  try{ if(App.peer) App.peer.destroy(); }catch(e){}
+  App={mode:null,isHost:false,myId:null,peer:null,hostConn:null,roomCode:null,connByPlayer:{},net:'',clockOffset:0};
+  G=null; CS={pub:null,priv:null}; UI={step:'pass',sel:null}; clearHost(); render();
+}
+function resumeHost(){
+  var raw=null; try{ raw=localStorage.getItem(LS_STATE); }catch(e){}
+  if(!raw){ toast('ไม่พบเกมที่ค้างไว้'); checkResume(); return; }
+  var d=null; try{ d=JSON.parse(raw); }catch(e){}
+  if(!d||!d.G||!d.G.players||!d.G.players.length){ toast('ข้อมูลเกมเสียหาย'); clearHost(); render(); return; }
+  clearTimers();
+  App.mode='online'; App.isHost=true; App.myId=d.myId; App.connByPlayer={}; G=d.G;
+  G.talk=true;
+  G.players.forEach(function(p){ if(!p.isBot&&p.id!==App.myId) p.connected=false; });
+  App.net='กำลังเปิดห้องเดิม...'; render();
+  hostCreate(function(){
+    toast('เปิดห้องเดิมแล้ว รหัส '+App.roomCode+' — ให้เพื่อนเข้าด้วยชื่อเดิม');
+    if(G.phase==='discuss'&&G.endAt>Date.now()) startDiscuss(G.endAt-Date.now());
+    else if(G.phase==='discuss') startVote();
+    render();
+  },d.code);
+}
+
+/* ========================= UI TICKER ========================= */
+setInterval(guard(function(){
+  var V=view(); if(!V||V.phase!=='discuss') return;
+  var el=$('phaseTimer'); if(!el) return;
+  var left=V.endAt-(Date.now()+App.clockOffset);
+  el.textContent=fmt(left);
+  el.classList.toggle('warn',left<30000);
+  var bar=$('phaseBar');
+  if(bar){ var total=V.talk?TALK_MS:DISCUSS_MS;
+    bar.style.width=Math.max(0,Math.min(100,left/total*100))+'%'; }
+}),400);
+
+/* ========================= BOOT ========================= */
+(function boot(){
+  try{
+    if(WORD_LIST.length<400) showError('คลังคำไม่ครบ 400 คำ (พบ '+WORD_LIST.length+')');
+    updatePool(); checkResume(); render();
+    document.addEventListener('pointerdown',function once(){ AU.unlock(); document.removeEventListener('pointerdown',once); });
+  }catch(err){ showError(err&&err.stack||err); }
+})();
+</script>
+</body>
+</html>
